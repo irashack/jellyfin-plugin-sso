@@ -1528,10 +1528,11 @@ public class SSOController : ControllerBase
 
                 policy.EnabledFolders = folderIds.ToArray();
             }
-        }
 
-        policy.EnableLiveTvAccess = enableLiveTv;
-        policy.EnableLiveTvManagement = enableLiveTvAdmin;
+            // Live TV is a permission like the others: left alone unless authorization is on.
+            policy.EnableLiveTvAccess = enableLiveTv;
+            policy.EnableLiveTvManagement = enableLiveTvAdmin;
+        }
 
         if (!string.IsNullOrEmpty(defaultProvider))
         {

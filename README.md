@@ -210,11 +210,11 @@ These all require authorization. Append an API key to the end of the request: `c
   - `preserveAdminPermissions`: boolean. When true, the plugin will only ever elevate users to administrator based on roles and will never revoke the administrator flag from an account that already has it. Defaults to `false`: admin status is synced strictly from the SAML response on every login.
   - `enableFolderRoles`: boolean. Determines if role-based folder access should be used.
   - `folderRoleMapping`: object in the format "role": string and "folders": array of strings. The user with this role will have access to the following folders if `enableFolderRoles` is enabled. To get the IDs of the folders, GET the `/Library/MediaFolders` URL with an API key. Look for the `Id` attribute.
-  - `enableLiveTvRoles`: boolean. Determines if role-based Live TV access should be used.
+  - `enableLiveTvRoles`: boolean. Determines if role-based Live TV access should be used. Like the other permissions, Live TV access is only written at sign-in when `enableAuthorization` is on; with it off, each user's Live TV permissions are left as an administrator set them.
   - `liveTvRoles`: array of strings. If `enableLiveTvRoles` is enabled, then the user's roles will be checked against these. If the user is granted permission, then the user will be able to view Live TV.
   - `liveTvManagementRoles`: array of strings. If `enableLiveTvRoles` is enabled, then the user's roles will be checked against these. If the user is granted permission, then the user will be able to manage Live TV.
-  - `enableLiveTv`: boolean. Whether to allow Live TV by default. This applies even if `enableLiveTvRoles` is enabled.
-  - `enableLiveTvManagement`: boolean. Whether to allow Live TV management by default. This applies even if `enableLiveTvRoles` is enabled.
+  - `enableLiveTv`: boolean. Whether to allow Live TV by default. This applies even if `enableLiveTvRoles` is enabled. Only applied when `enableAuthorization` is on.
+  - `enableLiveTvManagement`: boolean. Whether to allow Live TV management by default. This applies even if `enableLiveTvRoles` is enabled. Only applied when `enableAuthorization` is on.
   - `defaultProvider`: string. The set provider then gets assigned to the user after they have logged in. If it is not set, nothing is changed. With this, a user can login with SSO but is still able to log in via other providers later. See the `Unregister` endpoint.
   - `schemeOverride`: string. Sets the scheme for URLs used. Can be useful if the plugin refuses to use HTTPS URLs.
 - GET `SAML/Del/PROVIDER_NAME`: This removes a configuration for SAML for a given provider name.
@@ -250,11 +250,11 @@ These all require authorization. Append an API key to the end of the request: `c
   - `preserveAdminPermissions`: boolean. When true, the plugin will only ever elevate users to administrator based on roles and will never revoke the administrator flag from an account that already has it. Defaults to `false`: admin status is synced strictly from the OIDC response on every login.
   - `enableFolderRoles`: boolean. Determines if role-based folder access should be used.
   - `folderRoleMapping`: object in the format "role": string and "folders": array of strings. The user with this role will have access to the following folders if `enableFolderRoles` is enabled. To get the IDs of the folders, GET the `/Library/MediaFolders` URL with an API key. Look for the `Id` attribute.
-  - `enableLiveTvRoles`: boolean. Determines if role-based Live TV access should be used.
+  - `enableLiveTvRoles`: boolean. Determines if role-based Live TV access should be used. Like the other permissions, Live TV access is only written at sign-in when `enableAuthorization` is on; with it off, each user's Live TV permissions are left as an administrator set them.
   - `liveTvRoles`: array of strings. If `enableLiveTvRoles` is enabled, then the user's roles will be checked against these. If the user is granted permission, then the user will be able to view Live TV.
   - `liveTvManagementRoles`: array of strings. If `enableLiveTvRoles` is enabled, then the user's roles will be checked against these. If the user is granted permission, then the user will be able to manage Live TV.
-  - `enableLiveTv`: boolean. Whether to allow Live TV by default. This applies even if `enableLiveTvRoles` is enabled.
-  - `enableLiveTvManagement`: boolean. Whether to allow Live TV management by default. This applies even if `enableLiveTvRoles` is enabled.
+  - `enableLiveTv`: boolean. Whether to allow Live TV by default. This applies even if `enableLiveTvRoles` is enabled. Only applied when `enableAuthorization` is on.
+  - `enableLiveTvManagement`: boolean. Whether to allow Live TV management by default. This applies even if `enableLiveTvRoles` is enabled. Only applied when `enableAuthorization` is on.
   - `roleClaim`: string. This is the value in the OpenID response to check for roles. For Keycloak, it is `realm_access.roles` by default. The first element is the claim type, the subsequent values are to parse the JSON of the claim value. Use a "\\." to denote a literal ".". This expects a list of strings from the OIDC server.
   - `oidScopes` : array of strings. Each contains an additional scope name to include in the OIDC request.
     - For some OIDC providers (For example, [authelia](https://github.com/9p4/jellyfin-plugin-sso/issues/23#issuecomment-1112237616)), additional scopes may be required in order to validate group membership in role claim.
