@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "category": "Authentication",
+    "description": "This plugin allows users to sign in through an SSO provider (such as Google, Facebook, or your own provider). This enables one-click signin.\nFork of Buco7854/jellyfin-plugin-sso with RequireLinkedAccount, Live TV left alone without authorization, and an admin link API.\nReview documentation at https://github.com/irashack/jellyfin-plugin-sso\n",
+    "guid": "505ce9d1-d916-42fa-86ca-673ef241d7df",
+    "name": "SSO-Auth",
+    "overview": "Authenticate users against an SSO provider.",
+    "owner": "irashack",
+    "versions": [
+      {
+        "changelog": "Fork of Buco7854/jellyfin-plugin-sso 5.0.0.3 (https://github.com/irashack/jellyfin-plugin-sso) with three changes:\n\n- `requireLinkedAccount` for OpenID providers (Require Linked Account on the configuration page, off by default): an unlinked sign-in is refused with HTTP 403 instead of creating a Jellyfin user or matching one by name.\n- Live TV permissions are only written at sign-in when `enableAuthorization` is on, like every other permission.\n- Admin link API, `POST|DELETE|GET /sso/OID/AdminLink/{provider}/{jellyfinUserId}`, to link OpenID identities to existing users with an administrator API key, plus one lock around every link and provider configuration write.\n\nSame plugin name and GUID as upstream, so it replaces an installed upstream copy. Package repository: https://raw.githubusercontent.com/irashack/jellyfin-plugin-sso/manifest-release/manifest.json\n",
+        "checksum": "a528398fc8d55ade82068cafecb6ee3c",
+        "sourceUrl": "https://github.com/irashack/jellyfin-plugin-sso/releases/download/v5.0.0.3001/sso-auth_5.0.0.3001.zip",
+        "targetAbi": "12.0.0.0",
+        "timestamp": "2026-11-27T01:34:43Z",
+        "version": "5.0.0.3001"
+      }
+    ]
+  }
+]
