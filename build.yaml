@@ -1,14 +1,15 @@
 name: "SSO-Auth"
 guid: "505ce9d1-d916-42fa-86ca-673ef241d7df"
-imageUrl: "https://raw.githubusercontent.com/Buco7854/jellyfin-plugin-sso/main/img/logo.png"
+imageUrl: "https://raw.githubusercontent.com/irashack/jellyfin-plugin-sso/main/img/logo.png"
 version: "5.0.0.3001"
 targetAbi: "12.0.0.0"
 framework: "net10.0"
-owner: "Buco7854"
+owner: "irashack"
 overview: "Authenticate users against an SSO provider."
 description: |
   This plugin allows users to sign in through an SSO provider (such as Google, Facebook, or your own provider). This enables one-click signin.
-  Review documentation at https://github.com/Buco7854/jellyfin-plugin-sso
+  Fork of Buco7854/jellyfin-plugin-sso with RequireLinkedAccount, Live TV left alone without authorization, and an admin link API.
+  Review documentation at https://github.com/irashack/jellyfin-plugin-sso
 category: "Authentication"
 artifacts:
   - "SSO-Auth.dll"
