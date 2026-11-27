@@ -24,6 +24,16 @@
 
 This is a community fork of [9p4/jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso), which was archived by the original author. Maintenance and new fixes will continue here on a best-effort basis. While I may address some issues, this fork is primarily for my personal use, and I do not plan to maintain it to the same level as the original project.
 
+## About this fork
+
+This repository is a fork of [Buco7854/jellyfin-plugin-sso](https://github.com/Buco7854/jellyfin-plugin-sso) with three changes on top of its 5.0.0.3 release. Everything else is upstream's, and the rest of this README is upstream's, updated where these changes alter what it describes.
+
+1. **`requireLinkedAccount`** (OpenID providers; **Require Linked Account** on the configuration page; off by default): only an identity already linked to an existing Jellyfin user can sign in. An unlinked sign-in gets HTTP 403 and a message pointing to `/SSOViews/linking`, instead of a new Jellyfin user or a match by username. Useful when a new Jellyfin user would otherwise get access you didn't intend to give.
+2. **Live TV permissions are left alone when `enableAuthorization` is off.** Upstream writes the provider's Live TV defaults onto the user at every sign-in even with authorization off, overriding Live TV access an administrator set per user. Here, as for every other permission, they're written only with authorization on.
+3. **Admin link API**, `POST|DELETE|GET /sso/OID/AdminLink/{provider}/{jellyfinUserId}`, for linking identities to existing users with an administrator API key, plus one lock around every link and provider configuration write. See [Admin link API](#admin-link-api).
+
+Versions: `5.0.0.3001` is this fork's first release on upstream 5.0.0.3 (the last part is upstream's patch number × 1000 plus the fork's own release number). Build and install it with `./scripts/build-test-package.sh` as described under [Testing a local Jellyfin 12 build](#testing-a-local-jellyfin-12-build) (substitute this version for `5.0.0.1`); the plugin keeps upstream's name and GUID, so it replaces an installed upstream copy.
+
 This plugin allows users to sign in through an SSO provider (such as Google, Microsoft, or your own provider). This enables one-click signin.
 
 https://user-images.githubusercontent.com/17993169/149681516-f93b43f5-fa5c-4c1f-a909-e5414878a864.mp4
