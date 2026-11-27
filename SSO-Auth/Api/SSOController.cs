@@ -45,6 +45,12 @@ public class SSOController : ControllerBase
         "This sign-in is not linked to a Jellyfin account yet. Sign in with your Jellyfin password, then open /SSOViews/linking to link it.";
 
     private const string SamlLinkStatePrefix = "link:";
+    private const int MaxAdminLinkSubjectLength = 255;
+
+    // Guards every read-check-modify-save of the plugin configuration that touches provider
+    // configs or canonical links. Monitor locks are reentrant, so helpers that take it may be
+    // called from code that already holds it. Never hold it across an await.
+    private static readonly object ConfigLock = new();
     private readonly IUserManager _userManager;
     private readonly ISessionManager _sessionManager;
     private readonly IAuthorizationContext _authContext;
@@ -599,9 +605,12 @@ public class SSOController : ControllerBase
     [HttpPost("OID/Add/{provider}")]
     public void OidAdd(string provider, [FromBody] OidConfig config)
     {
-        var configuration = SSOPlugin.Instance.Configuration;
-        configuration.OidConfigs[provider] = config;
-        SSOPlugin.Instance.UpdateConfiguration(configuration);
+        lock (ConfigLock)
+        {
+            var configuration = SSOPlugin.Instance.Configuration;
+            configuration.OidConfigs[provider] = config;
+            SSOPlugin.Instance.UpdateConfiguration(configuration);
+        }
     }
 
     /// <summary>
@@ -612,9 +621,12 @@ public class SSOController : ControllerBase
     [HttpGet("OID/Del/{provider}")]
     public void OidDel(string provider)
     {
-        var configuration = SSOPlugin.Instance.Configuration;
-        configuration.OidConfigs.Remove(provider);
-        SSOPlugin.Instance.UpdateConfiguration(configuration);
+        lock (ConfigLock)
+        {
+            var configuration = SSOPlugin.Instance.Configuration;
+            configuration.OidConfigs.Remove(provider);
+            SSOPlugin.Instance.UpdateConfiguration(configuration);
+        }
     }
 
     /// <summary>
@@ -949,9 +961,13 @@ public class SSOController : ControllerBase
     [HttpPost("SAML/Add/{provider}")]
     public OkResult SamlAdd(string provider, [FromBody] SamlConfig newConfig)
     {
-        var configuration = SSOPlugin.Instance.Configuration;
-        configuration.SamlConfigs[provider] = newConfig;
-        SSOPlugin.Instance.UpdateConfiguration(configuration);
+        lock (ConfigLock)
+        {
+            var configuration = SSOPlugin.Instance.Configuration;
+            configuration.SamlConfigs[provider] = newConfig;
+            SSOPlugin.Instance.UpdateConfiguration(configuration);
+        }
+
         return Ok();
     }
 
@@ -964,9 +980,13 @@ public class SSOController : ControllerBase
     [HttpGet("SAML/Del/{provider}")]
     public OkResult SamlDel(string provider)
     {
-        var configuration = SSOPlugin.Instance.Configuration;
-        configuration.SamlConfigs.Remove(provider);
-        SSOPlugin.Instance.UpdateConfiguration(configuration);
+        lock (ConfigLock)
+        {
+            var configuration = SSOPlugin.Instance.Configuration;
+            configuration.SamlConfigs.Remove(provider);
+            SSOPlugin.Instance.UpdateConfiguration(configuration);
+        }
+
         return Ok();
     }
 
@@ -1139,6 +1159,13 @@ public class SSOController : ControllerBase
         return links;
     }
 
+    // Returns a private copy of the links so a writer never mutates a dictionary that login
+    // requests may be enumerating or reading; the copy replaces the original on save.
+    private SerializableDictionary<string, Guid> CopyCanonicalLinks(string mode, string provider)
+    {
+        return new SerializableDictionary<string, Guid>(GetCanonicalLinks(mode, provider));
+    }
+
     private async Task<Guid> CreateCanonicalLinkAndUserIfNotExist(string mode, string provider, string canonicalName)
     {
         User user = null;
@@ -1174,9 +1201,12 @@ public class SSOController : ControllerBase
             await _userManager.UpdateUserAsync(user).ConfigureAwait(false);
 
             // Make sure there aren't any trailing existing links
-            var links = GetCanonicalLinks(mode, provider);
-            links.Remove(canonicalName);
-            UpdateCanonicalLinkConfig(links, mode, provider);
+            lock (ConfigLock)
+            {
+                var links = CopyCanonicalLinks(mode, provider);
+                links.Remove(canonicalName);
+                UpdateCanonicalLinkConfig(links, mode, provider);
+            }
         }
 
         userId = Guid.Empty;
@@ -1268,18 +1298,174 @@ public class SSOController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, "Current user is not allowed to unlink SSO providers for user ID.");
         }
 
-        Guid linkedId = GetCanonicalLink(mode, provider, canonicalName);
-
-        if (linkedId != jellyfinUserId)
+        lock (ConfigLock)
         {
-            return StatusCode(StatusCodes.Status409Conflict, "jellyfin UID does not match id registered to that canonical name.");
+            Guid linkedId = GetCanonicalLink(mode, provider, canonicalName);
+
+            if (linkedId != jellyfinUserId)
+            {
+                return StatusCode(StatusCodes.Status409Conflict, "jellyfin UID does not match id registered to that canonical name.");
+            }
+
+            var links = CopyCanonicalLinks(mode, provider);
+
+            links.Remove(canonicalName);
+
+            return UpdateCanonicalLinkConfig(links, mode, provider);
+        }
+    }
+
+    /// <summary>
+    /// Links an OpenID identity to a non-administrator Jellyfin user. Requires administrator privileges
+    /// (an administrator session or an administrator API key). The identity is never echoed back or logged.
+    /// </summary>
+    /// <param name="provider">The name of an existing OpenID provider.</param>
+    /// <param name="jellyfinUserId">The Jellyfin user to link.</param>
+    /// <param name="request">The JSON body holding the identity's link key (<c>sub</c>) to link.</param>
+    /// <returns>
+    /// 204 when linked; 400 for a missing, blank or over-long key; 403 for an administrator user;
+    /// 404 for an unknown provider or user; 409 when the key is already linked to any user.
+    /// </returns>
+    [Authorize(Policy = Policies.RequiresElevation)]
+    [HttpPost("OID/AdminLink/{provider}/{jellyfinUserId}")]
+    [Consumes(MediaTypeNames.Application.Json)]
+    public ActionResult AdminAddLink([FromRoute] string provider, [FromRoute] Guid jellyfinUserId, [FromBody] AdminLinkRequest request)
+    {
+        if (!OidProviderExists(provider))
+        {
+            return NotFound("No matching provider found");
         }
 
-        var links = GetCanonicalLinks(mode, provider);
+        string sub = request?.Sub;
+        if (string.IsNullOrWhiteSpace(sub) || sub.Length > MaxAdminLinkSubjectLength)
+        {
+            return BadRequest("The sub field is required and must be 1 to 255 characters.");
+        }
 
-        links.Remove(canonicalName);
+        User user = _userManager.GetUserById(jellyfinUserId);
+        if (user == null)
+        {
+            _logger.LogInformation("Admin link for user {UserId}: user not found", jellyfinUserId);
+            return NotFound("No matching user found");
+        }
 
-        return UpdateCanonicalLinkConfig(links, mode, provider);
+        if (user.HasPermission(PermissionKind.IsAdministrator))
+        {
+            _logger.LogWarning("Admin link for user {UserId}: refused, user is an administrator", jellyfinUserId);
+            return StatusCode(StatusCodes.Status403Forbidden, "Administrator accounts cannot be linked through this endpoint.");
+        }
+
+        lock (ConfigLock)
+        {
+            SerializableDictionary<string, Guid> links;
+            try
+            {
+                links = CopyCanonicalLinks("oid", provider);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("No matching provider found");
+            }
+
+            if (links.ContainsKey(sub))
+            {
+                _logger.LogInformation("Admin link for user {UserId}: refused, identity already linked", jellyfinUserId);
+                return StatusCode(StatusCodes.Status409Conflict, "This SSO identity is already linked.");
+            }
+
+            links[sub] = jellyfinUserId;
+            UpdateCanonicalLinkConfig(links, "oid", provider);
+        }
+
+        _logger.LogInformation("Admin link for user {UserId}: linked", jellyfinUserId);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Removes every OpenID link that points at a non-administrator Jellyfin user. Requires administrator privileges.
+    /// </summary>
+    /// <param name="provider">The name of an existing OpenID provider.</param>
+    /// <param name="jellyfinUserId">The Jellyfin user whose links are removed. The user need not still exist.</param>
+    /// <returns>
+    /// 200 with <c>{"removed": n}</c> (n may be 0); 403 for an administrator user; 404 for an unknown provider.
+    /// </returns>
+    [Authorize(Policy = Policies.RequiresElevation)]
+    [HttpDelete("OID/AdminLink/{provider}/{jellyfinUserId}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    public ActionResult AdminRemoveLinks([FromRoute] string provider, [FromRoute] Guid jellyfinUserId)
+    {
+        if (!OidProviderExists(provider))
+        {
+            return NotFound("No matching provider found");
+        }
+
+        User user = _userManager.GetUserById(jellyfinUserId);
+        if (user != null && user.HasPermission(PermissionKind.IsAdministrator))
+        {
+            _logger.LogWarning("Admin unlink for user {UserId}: refused, user is an administrator", jellyfinUserId);
+            return StatusCode(StatusCodes.Status403Forbidden, "Administrator accounts cannot be unlinked through this endpoint.");
+        }
+
+        int removed;
+        lock (ConfigLock)
+        {
+            SerializableDictionary<string, Guid> links;
+            try
+            {
+                links = CopyCanonicalLinks("oid", provider);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("No matching provider found");
+            }
+
+            removed = 0;
+            foreach (var key in links.Where(link => link.Value == jellyfinUserId).Select(link => link.Key).ToList())
+            {
+                if (links.Remove(key))
+                {
+                    removed++;
+                }
+            }
+
+            if (removed > 0)
+            {
+                UpdateCanonicalLinkConfig(links, "oid", provider);
+            }
+        }
+
+        _logger.LogInformation("Admin unlink for user {UserId}: removed {Removed} link(s)", jellyfinUserId, removed);
+        return Ok(new { removed });
+    }
+
+    /// <summary>
+    /// Reports whether a Jellyfin user has at least one OpenID link. Requires administrator privileges.
+    /// </summary>
+    /// <param name="provider">The name of an existing OpenID provider.</param>
+    /// <param name="jellyfinUserId">The Jellyfin user to check.</param>
+    /// <returns>200 with <c>{"linked": true|false}</c> only; 404 for an unknown provider.</returns>
+    [Authorize(Policy = Policies.RequiresElevation)]
+    [HttpGet("OID/AdminLink/{provider}/{jellyfinUserId}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    public ActionResult AdminHasLink([FromRoute] string provider, [FromRoute] Guid jellyfinUserId)
+    {
+        bool linked;
+        lock (ConfigLock)
+        {
+            if (!OidProviderExists(provider))
+            {
+                return NotFound("No matching provider found");
+            }
+
+            linked = GetCanonicalLinks("oid", provider).Values.Any(id => id == jellyfinUserId);
+        }
+
+        return Ok(new { linked });
+    }
+
+    private static bool OidProviderExists(string provider)
+    {
+        return !string.IsNullOrEmpty(provider) && SSOPlugin.Instance.Configuration.OidConfigs.ContainsKey(provider);
     }
 
     /// <summary>
@@ -1417,27 +1603,30 @@ public class SSOController : ControllerBase
             return BadRequest("The SSO provider did not return a usable user identifier.");
         }
 
-        SerializableDictionary<string, Guid> links = null;
-        try
+        lock (ConfigLock)
         {
-            links = GetCanonicalLinks(mode, provider);
-        }
-        catch (KeyNotFoundException)
-        {
-            return BadRequest("No matching provider found");
-        }
+            SerializableDictionary<string, Guid> links = null;
+            try
+            {
+                links = CopyCanonicalLinks(mode, provider);
+            }
+            catch (KeyNotFoundException)
+            {
+                return BadRequest("No matching provider found");
+            }
 
-        if (links.TryGetValue(providerUserId, out var existingUserId) && existingUserId != jellyfinUserId)
-        {
-            return StatusCode(
-                StatusCodes.Status409Conflict,
-                "This SSO identity is already linked to another Jellyfin user.");
+            if (links.TryGetValue(providerUserId, out var existingUserId) && existingUserId != jellyfinUserId)
+            {
+                return StatusCode(
+                    StatusCodes.Status409Conflict,
+                    "This SSO identity is already linked to another Jellyfin user.");
+            }
+
+            links[providerUserId] = jellyfinUserId;
+            UpdateCanonicalLinkConfig(links, mode, provider);
+
+            return NoContent();
         }
-
-        links[providerUserId] = jellyfinUserId;
-        UpdateCanonicalLinkConfig(links, mode, provider);
-
-        return NoContent();
     }
 
     private OkResult UpdateCanonicalLinkConfig(SerializableDictionary<string, Guid> links, string mode, string provider)
@@ -1699,6 +1888,18 @@ public class SSOController : ControllerBase
         errorResult.StatusCode = code;
         return errorResult;
     }
+}
+
+/// <summary>
+/// The JSON body of the admin link route.
+/// </summary>
+public class AdminLinkRequest
+{
+    /// <summary>
+    /// Gets or sets the identity's link key: the value of the provider's DefaultUsernameClaim claim
+    /// (<c>preferred_username</c> unless set), or of <c>sub</c> when the provider omits that claim.
+    /// </summary>
+    public string Sub { get; set; }
 }
 
 /// <summary>

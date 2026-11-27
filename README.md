@@ -271,6 +271,23 @@ These all require authorization. Append an API key to the end of the request: `c
 - GET `OID/Get`: Lists the configurations currently available.
 - GET `OID/States`: Lists currently active OpenID flows in progress.
 
+### Admin link API
+
+For automation (for example an onboarding service) that holds an administrator API key: links an OpenID identity to an existing Jellyfin user without that user signing in first. The self-service `Link` route can't do this, because it acts on the signed-in session's user. All three routes require administrator privileges (an administrator session, `Authorization: MediaBrowser Token="API_KEY"` or `?ApiKey=API_KEY`; 401 without credentials, 403 for a non-administrator), apply to OpenID providers only, and answer 404 when `PROVIDER_NAME` is not a configured OpenID provider. Responses never contain a link key, a client secret or any other configuration, and their log lines name only the Jellyfin user id and the outcome.
+
+The link key is what a sign-in looks the user up by: the value of the claim named in the provider's `defaultUsernameClaim` (`preferred_username` when unset), or of `sub` when the provider doesn't return that claim. The body field is called `sub` because setting `defaultUsernameClaim` to `sub` is the usual choice for stable links; with any other claim, send that claim's value.
+
+- POST `OID/AdminLink/PROVIDER_NAME/JELLYFIN_USER_ID`: links a key to the user. Send `Content-Type: application/json` (415 otherwise) and the body `{"sub": "<link key>"}`. Status codes:
+  - 204: linked.
+  - 400: `sub` missing, empty, whitespace only, or longer than 255 characters, or the body is not valid JSON.
+  - 403: the Jellyfin user is an administrator.
+  - 404: unknown provider or unknown Jellyfin user.
+  - 409: that key is already linked in this provider, to any user, including this one. The route is deliberately not idempotent.
+- DELETE `OID/AdminLink/PROVIDER_NAME/JELLYFIN_USER_ID`: removes every link in the provider whose target is that user (for offboarding). Answers 200 with `{"removed": <count>}`, where the count is 0 when there was nothing to remove; 403 when the user is an administrator. The Jellyfin user need not still exist, so links to a deleted user can be cleaned up.
+- GET `OID/AdminLink/PROVIDER_NAME/JELLYFIN_USER_ID`: answers 200 with `{"linked": true}` or `{"linked": false}` and nothing else.
+
+Locking: one process-wide lock covers every read-check-modify-save of provider configurations and links done by this plugin's routes: these three, the self-service link and unlink routes, the link written at sign-in and when a user is created, and the OID/SAML `Add` and `Del` routes. Link writers save a modified copy of the links rather than editing the live dictionary, so a concurrent sign-in never reads a half-updated one. Two writers stay outside it: `OID/Add` replaces a whole provider configuration, links included, with the posted body, and saving the plugin's configuration page writes back the whole configuration it loaded through Jellyfin's own plugin configuration endpoint, which can undo a link written in between.
+
 ### Misc
 
 - POST `Unregister/username`: This "unregisters" a user from SSO. A JSON-formatted string must be posted with the new authentication provider. To reset to the default provider, use `Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider` like so: `curl -X POST -H "Content-Type: application/json" -d '"Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider"' "https://myjellyfin.example.com/sso/Unregister/username?ApiKey=API_KEY`
