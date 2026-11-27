@@ -1,12 +1,20 @@
 [
   {
     "category": "Authentication",
-    "description": "This plugin allows users to sign in through an SSO provider (such as Google, Facebook, or your own provider). This enables one-click signin.\nFork of Buco7854/jellyfin-plugin-sso with RequireLinkedAccount, Live TV left alone without authorization, and an admin link API.\nReview documentation at https://github.com/irashack/jellyfin-plugin-sso\n",
+    "description": "This plugin allows users to sign in through an SSO provider (such as Google, Facebook, or your own provider). This enables one-click signin.\nFork of Buco7854/jellyfin-plugin-sso with RequireLinkedAccount, an option to disable password sign-in, Live TV left alone without authorization, and an admin link API.\nReview documentation at https://github.com/irashack/jellyfin-plugin-sso\n",
     "guid": "505ce9d1-d916-42fa-86ca-673ef241d7df",
     "name": "SSO-Auth",
     "overview": "Authenticate users against an SSO provider.",
     "owner": "irashack",
     "versions": [
+      {
+        "changelog": "Fork of Buco7854/jellyfin-plugin-sso 5.0.0.3 (https://github.com/irashack/jellyfin-plugin-sso). New in 5.0.0.3002:\n\n- **Disable password sign-in** (`DisablePasswordLogin`, \"Password Sign-in\" on the configuration page, off by default). Jellyfin's username and password sign-in (`POST /Users/AuthenticateByName` and the obsolete `POST /Users/{userId}/Authenticate`) is refused with HTTP 403 at the API, before the password is checked. The server becomes SSO-only.\n  - `PasswordLoginAllowedUsers`: break-glass usernames that may still sign in with a password.\n  - `AllowPasswordLoginForUnlinkedUsers`: users that no SSO provider links to may keep using their password.\n  - SSO sign-in, Quick Connect (the way TV and phone apps sign in), API keys and existing sessions keep working. No restart is needed.\n  - Details are in the README under \"Disabling password sign-in\".\n- The repository's first automated tests (`SSO-Auth.Tests`).\n\nCarried over from 5.0.0.3001: `requireLinkedAccount` for OpenID providers; Live TV permissions written only when `enableAuthorization` is on; the admin link API with one lock around every link and configuration write.\n\nSame plugin name and GUID as upstream, so it replaces an installed upstream copy. Package repository: https://raw.githubusercontent.com/irashack/jellyfin-plugin-sso/manifest-release/manifest.json\n",
+        "checksum": "a6be228d5ece6666aa7cb96247828b0a",
+        "sourceUrl": "https://github.com/irashack/jellyfin-plugin-sso/releases/download/v5.0.0.3002/sso-auth_5.0.0.3002.zip",
+        "targetAbi": "12.0.0.0",
+        "timestamp": "2026-11-27T23:09:06Z",
+        "version": "5.0.0.3002"
+      },
       {
         "changelog": "Fork of Buco7854/jellyfin-plugin-sso 5.0.0.3 (https://github.com/irashack/jellyfin-plugin-sso) with three changes:\n\n- `requireLinkedAccount` for OpenID providers (Require Linked Account on the configuration page, off by default): an unlinked sign-in is refused with HTTP 403 instead of creating a Jellyfin user or matching one by name.\n- Live TV permissions are only written at sign-in when `enableAuthorization` is on, like every other permission.\n- Admin link API, `POST|DELETE|GET /sso/OID/AdminLink/{provider}/{jellyfinUserId}`, to link OpenID identities to existing users with an administrator API key, plus one lock around every link and provider configuration write.\n\nSame plugin name and GUID as upstream, so it replaces an installed upstream copy. Package repository: https://raw.githubusercontent.com/irashack/jellyfin-plugin-sso/manifest-release/manifest.json\n",
         "checksum": "a528398fc8d55ade82068cafecb6ee3c",
