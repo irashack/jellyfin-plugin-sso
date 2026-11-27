@@ -64,6 +64,85 @@
             to accomplish this.
           </p>
 
+          <form id="sso-password-login" class="esqConfigurationForm">
+            <div
+              is="emby-collapse"
+              title="Password Sign-in"
+              class="verticalSection"
+            >
+              <div class="collapseContent">
+                <div
+                  class="checkboxContainer checkboxContainer-withDescription"
+                >
+                  <label>
+                    <input
+                      is="emby-checkbox"
+                      id="DisablePasswordLogin"
+                      name="DisablePasswordLogin"
+                      type="checkbox"
+                    />
+                    <span>Disable Password Sign-in</span>
+                  </label>
+                  <div class="fieldDescription checkboxFieldDescription">
+                    Refuse Jellyfin's username and password sign-in (HTTP 403)
+                    for everyone except the users below. Sign-in through this
+                    plugin, Quick Connect, API keys and sessions that already
+                    exist keep working. Apps that only offer a password form
+                    must use Quick Connect instead. Takes effect at once, no
+                    restart needed.
+                  </div>
+                </div>
+
+                <div class="inputContainer">
+                  <label
+                    class="inputLabel inputLabelUnfocused"
+                    for="PasswordLoginAllowedUsers"
+                    >Users Allowed to Sign In with a Password:</label
+                  >
+                  <textarea
+                    is="emby-textarea"
+                    id="PasswordLoginAllowedUsers"
+                    type="text"
+                    class="emby-textarea"
+                  ></textarea>
+                  <div class="fieldDescription">
+                    Jellyfin usernames, one per line, that may still sign in
+                    with a password: keep at least one administrator here as a
+                    break-glass account in case the SSO provider is down.
+                  </div>
+                </div>
+
+                <div
+                  class="checkboxContainer checkboxContainer-withDescription"
+                >
+                  <label>
+                    <input
+                      is="emby-checkbox"
+                      id="AllowPasswordLoginForUnlinkedUsers"
+                      name="AllowPasswordLoginForUnlinkedUsers"
+                      type="checkbox"
+                    />
+                    <span>Allow Password Sign-in for Unlinked Users</span>
+                  </label>
+                  <div class="fieldDescription checkboxFieldDescription">
+                    Also let existing Jellyfin users that no SSO provider is
+                    linked to sign in with a password. Users that sign in
+                    through SSO, and users created by it, stay SSO-only.
+                  </div>
+                </div>
+
+                <button
+                  id="SavePasswordLogin"
+                  is="emby-button"
+                  type="button"
+                  class="raised button-submit block emby-button"
+                >
+                  <span>Save Password Sign-in Settings</span>
+                </button>
+              </div>
+            </div>
+          </form>
+
           <form id="sso-load-config" class="esqConfigurationForm">
             <div
               class="verticalSection"

@@ -26,15 +26,16 @@ This is a community fork of [9p4/jellyfin-plugin-sso](https://github.com/9p4/jel
 
 ## About this fork
 
-This repository is a fork of [Buco7854/jellyfin-plugin-sso](https://github.com/Buco7854/jellyfin-plugin-sso) with three changes on top of its 5.0.0.3 release. Everything else is upstream's, and the rest of this README is upstream's, updated where these changes alter what it describes.
+This repository is a fork of [Buco7854/jellyfin-plugin-sso](https://github.com/Buco7854/jellyfin-plugin-sso) with four changes on top of its 5.0.0.3 release. Everything else is upstream's, and the rest of this README is upstream's, updated where these changes alter what it describes.
 
 1. **`requireLinkedAccount`** (OpenID providers; **Require Linked Account** on the configuration page; off by default): only an identity already linked to an existing Jellyfin user can sign in. An unlinked sign-in gets HTTP 403 and a message pointing to `/SSOViews/linking`, instead of a new Jellyfin user or a match by username. Useful when a new Jellyfin user would otherwise get access you didn't intend to give.
 2. **Live TV permissions are left alone when `enableAuthorization` is off.** Upstream writes the provider's Live TV defaults onto the user at every sign-in even with authorization off, overriding Live TV access an administrator set per user. Here, as for every other permission, they're written only with authorization on.
 3. **Admin link API**, `POST|DELETE|GET /sso/OID/AdminLink/{provider}/{jellyfinUserId}`, for linking identities to existing users with an administrator API key, plus one lock around every link and provider configuration write. See [Admin link API](#admin-link-api).
+4. **`disablePasswordLogin`** (**Password Sign-in** on the configuration page; off by default): refuses Jellyfin's own username and password sign-in at the API, so the server is SSO-only, with a list of break-glass users who may still use a password. Quick Connect and API keys keep working. See [Disabling password sign-in](#disabling-password-sign-in).
 
 Installing this fork: add the package repository [https://raw.githubusercontent.com/irashack/jellyfin-plugin-sso/manifest-release/manifest.json](https://raw.githubusercontent.com/irashack/jellyfin-plugin-sso/manifest-release/manifest.json) to your Jellyfin plugin repositories, then install **SSO-Auth** from the catalog. Each version's zip, with MD5 and SHA-256 checksums, is also on the [releases page](https://github.com/irashack/jellyfin-plugin-sso/releases). The Buco7854 manifest URLs further down install upstream's build instead. This fork publishes formal releases only, no nightly builds.
 
-Versions: `5.0.0.3001` is this fork's first release on upstream 5.0.0.3 (the last part is upstream's patch number × 1000 plus the fork's own release number). Build and install it with `./scripts/build-test-package.sh` as described under [Testing a local Jellyfin 12 build](#testing-a-local-jellyfin-12-build) (substitute this version for `5.0.0.1`); the plugin keeps upstream's name and GUID, so it replaces an installed upstream copy.
+Versions: `5.0.0.3002` is this fork's second release on upstream 5.0.0.3 (the last part is upstream's patch number × 1000 plus the fork's own release number). Build and install it with `./scripts/build-test-package.sh` as described under [Testing a local Jellyfin 12 build](#testing-a-local-jellyfin-12-build) (substitute this version for `5.0.0.1`); the plugin keeps upstream's name and GUID, so it replaces an installed upstream copy.
 
 This plugin allows users to sign in through an SSO provider (such as Google, Microsoft, or your own provider). This enables one-click signin.
 
@@ -153,6 +154,31 @@ a.raised.emby-button {
 ![screenshot of the configuration page with the same code](img/custom-button.png)
 
 For more information, refer to [issue #16](https://github.com/9p4/jellyfin-plugin-sso/issues/16).
+
+### Disabling password sign-in
+
+With **Disable Password Sign-in** on (`disablePasswordLogin` in the plugin configuration; off by default), Jellyfin's username and password sign-in is refused, so users can only sign in through this plugin's providers or Quick Connect. It is enforced on the server, not by hiding the login form: the plugin registers an MVC filter that answers Jellyfin's two password sign-in routes, `POST /Users/AuthenticateByName` and the obsolete `POST /Users/{userId}/Authenticate`, with HTTP 403 and a short message before Jellyfin checks the password. Refused attempts are logged as warnings with the username and client address, and they don't count toward Jellyfin's per-user lockout, because Jellyfin never sees them. The setting is read on every request, so saving it takes effect without a restart.
+
+Settings (on the configuration page under **Password Sign-in**, saved with their own button):
+
+- `disablePasswordLogin`: boolean, default `false`. Off, the plugin changes nothing about password sign-in.
+- `passwordLoginAllowedUsers`: list of Jellyfin usernames, default empty. These users may still sign in with a password: the break-glass path. Compared case-insensitively, as Jellyfin compares usernames. Keep at least one administrator here; the page asks for confirmation when you disable password sign-in with an empty list.
+- `allowPasswordLoginForUnlinkedUsers`: boolean, default `false`. Also lets an existing user that no OpenID or SAML provider links to sign in with a password, for example local accounts for people without an identity at your provider. Users created by SSO sign-in are always linked, so they stay SSO-only.
+
+What keeps working, and what doesn't:
+
+- **SSO sign-in** through this plugin (web UI, and apps that show the web UI) is unaffected: it starts sessions without a password.
+- **Quick Connect** is unaffected. It is how TV and phone apps whose login screen only has a username and password form sign in: the app shows a code, and a user who is already signed in (through SSO in a browser) approves it. Quick Connect must be enabled in Jellyfin's dashboard (General → Quick Connect); turn it off there if you don't want it.
+- **API keys** (`Authorization: MediaBrowser Token="…"` or `?ApiKey=…`) are unaffected; they never use the password routes. So are **sessions that already exist**: turning the setting on doesn't sign anyone out. To end sessions that were started with a password, sign those devices out in the dashboard (Devices).
+- **Apps signing in with a password** get HTTP 403. Jellyfin's web UI shows its "not authorized" message; other apps show a generic sign-in error. Services that sign in as a user with a password need an API key instead, or their user on `passwordLoginAllowedUsers`.
+- **Password changes and resets** are not blocked, but a new password doesn't let a refused user sign in.
+- **Other authentication providers** (for example the LDAP plugin) are reached through the same password routes, so they are refused too, except for listed and (with `allowPasswordLoginForUnlinkedUsers`) unlinked users.
+
+Which status a client gets tells it something: a listed user (or an unlinked one, with that option) gets Jellyfin's usual 401 for a wrong password, where everyone else gets 403. Someone probing the server can therefore learn which usernames are on the break-glass list, but still needs their passwords.
+
+Locked out? An administrator API key can still change the setting (`POST /Plugins/505ce9d1-d916-42fa-86ca-673ef241d7df/Configuration` with the whole configuration). Or stop Jellyfin, set `<DisablePasswordLogin>false</DisablePasswordLogin>` in `plugins/configurations/SSO-Auth.xml` under Jellyfin's configuration directory, and start it again.
+
+You may also want to hide the password form in the web UI, with the [login button](#creating-a-login-button-on-the-main-page) in its place. Hiding it is cosmetic; the setting above is what refuses the sign-in.
 
 ### SAML
 
@@ -328,7 +354,7 @@ This project uses Nix flakes to manage development dependencies. Run `nix develo
 
 ## Building
 
-This branch is built with .NET 10. Run `./scripts/build-test-package.sh` from the repository root to produce a manually installable test ZIP under `artifacts/`.
+This branch is built with .NET 10. Run `./scripts/build-test-package.sh` from the repository root to produce a manually installable test ZIP under `artifacts/`. Run `dotnet test` for the tests in `SSO-Auth.Tests`.
 
 ### VSCode Workflow
 

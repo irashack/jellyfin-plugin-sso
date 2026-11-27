@@ -4,6 +4,7 @@ const ssoConfigurationPage = {
     ApiClient.getPluginConfiguration(ssoConfigurationPage.pluginUniqueId).then(
       (config) => {
         ssoConfigurationPage.populateProviders(page, config.OidConfigs);
+        ssoConfigurationPage.populatePasswordLogin(page, config);
       },
     );
 
@@ -355,6 +356,54 @@ const ssoConfigurationPage = {
       });
     });
   },
+  populatePasswordLogin: (page, config) => {
+    page.querySelector("#DisablePasswordLogin").checked =
+      !!config.DisablePasswordLogin;
+    page.querySelector("#AllowPasswordLoginForUnlinkedUsers").checked =
+      !!config.AllowPasswordLoginForUnlinkedUsers;
+    ssoConfigurationPage.fillTextList(
+      config.PasswordLoginAllowedUsers || [],
+      page.querySelector("#PasswordLoginAllowedUsers"),
+    );
+  },
+  savePasswordLogin: (page) => {
+    const disable = page.querySelector("#DisablePasswordLogin").checked;
+    const allowed = ssoConfigurationPage.parseTextList(
+      page.querySelector("#PasswordLoginAllowedUsers"),
+    );
+    const allowUnlinked = page.querySelector(
+      "#AllowPasswordLoginForUnlinkedUsers",
+    ).checked;
+
+    if (
+      disable &&
+      allowed.length === 0 &&
+      !window.confirm(
+        "No user is allowed to sign in with a password. If SSO stops working, no one can sign in to Jellyfin until the plugin configuration file is edited by hand. Continue?",
+      )
+    ) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      ApiClient.getPluginConfiguration(
+        ssoConfigurationPage.pluginUniqueId,
+      ).then((config) => {
+        config.DisablePasswordLogin = disable;
+        config.PasswordLoginAllowedUsers = allowed;
+        config.AllowPasswordLoginForUnlinkedUsers = allowUnlinked;
+        ApiClient.updatePluginConfiguration(
+          ssoConfigurationPage.pluginUniqueId,
+          config,
+        ).then(function (result) {
+          Dashboard.processPluginConfigurationUpdateResult(result);
+          ssoConfigurationPage.loadConfiguration(page);
+          Dashboard.alert("Settings saved.");
+          resolve();
+        });
+      });
+    });
+  },
   addTextAreaStyle: (view) => {
     var style = document.createElement("link");
     style.rel = "stylesheet";
@@ -374,6 +423,13 @@ export default function (view) {
     const target_provider = view.querySelector("#OidProviderName").value;
 
     ssoConfigurationPage.saveProvider(view, target_provider);
+
+    e.preventDefault();
+    return false;
+  });
+
+  view.querySelector("#SavePasswordLogin").addEventListener("click", (e) => {
+    ssoConfigurationPage.savePasswordLogin(view);
 
     e.preventDefault();
     return false;

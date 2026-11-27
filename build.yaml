@@ -1,14 +1,14 @@
 name: "SSO-Auth"
 guid: "505ce9d1-d916-42fa-86ca-673ef241d7df"
 imageUrl: "https://raw.githubusercontent.com/irashack/jellyfin-plugin-sso/main/img/logo.png"
-version: "5.0.0.3001"
+version: "5.0.0.3002"
 targetAbi: "12.0.0.0"
 framework: "net10.0"
 owner: "irashack"
 overview: "Authenticate users against an SSO provider."
 description: |
   This plugin allows users to sign in through an SSO provider (such as Google, Facebook, or your own provider). This enables one-click signin.
-  Fork of Buco7854/jellyfin-plugin-sso with RequireLinkedAccount, Live TV left alone without authorization, and an admin link API.
+  Fork of Buco7854/jellyfin-plugin-sso with RequireLinkedAccount, an option to disable password sign-in, Live TV left alone without authorization, and an admin link API.
   Review documentation at https://github.com/irashack/jellyfin-plugin-sso
 category: "Authentication"
 artifacts:
@@ -16,6 +16,7 @@ artifacts:
   - "Duende.IdentityModel.OidcClient.dll"
   - "Duende.IdentityModel.dll"
 changelog: |
+  5.0.0.3002: Optional DisablePasswordLogin (off by default): refuse Jellyfin username and password sign-in at the API, with PasswordLoginAllowedUsers for break-glass accounts and AllowPasswordLoginForUnlinkedUsers. SSO, Quick Connect and API keys keep working.
   5.0.0.3001: Fork of 5.0.0.3. RequireLinkedAccount for OpenID providers; Live TV permissions left alone when EnableAuthorization is off; admin link API (POST/DELETE/GET /sso/OID/AdminLink/{provider}/{userId}) with one lock around every link and provider write.
   5.0.0.3: Clarify provider setup and fix old links.
   5.0.0.2: Align the package name with the runtime plugin name so Jellyfin can reliably remove superseded plugin versions during upgrades (#9).
