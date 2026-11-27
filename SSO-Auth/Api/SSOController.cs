@@ -41,6 +41,9 @@ namespace Jellyfin.Plugin.SSO_Auth.Api;
 [Route("[controller]")]
 public class SSOController : ControllerBase
 {
+    private const string UnlinkedAccountMessage =
+        "This sign-in is not linked to a Jellyfin account yet. Sign in with your Jellyfin password, then open /SSOViews/linking to link it.";
+
     private const string SamlLinkStatePrefix = "link:";
     private readonly IUserManager _userManager;
     private readonly ISessionManager _sessionManager;
@@ -411,6 +414,13 @@ public class SSOController : ControllerBase
                     return Redirect(GetRequestBase(config.SchemeOverride, config.PortOverride) + "/SSOViews/linking");
                 }
 
+                if (config.RequireLinkedAccount && !HasLinkedUser("oid", provider, timedState.Username))
+                {
+                    StateManager.TryRemove(state, out _);
+                    _logger.LogWarning("OpenID identity {Username} is not linked to a Jellyfin user; sign-in refused.", timedState.Username);
+                    return ReturnError(StatusCodes.Status403Forbidden, UnlinkedAccountMessage);
+                }
+
                 _logger.LogInformation($"Is request linking: {isLinking}");
                 return Content(WebResponse.Generator(data: state, provider: provider, baseUrl: GetRequestBase(config.SchemeOverride, config.PortOverride), mode: "OID"), MediaTypeNames.Text.Html);
             }
@@ -678,6 +688,11 @@ public class SSOController : ControllerBase
             && string.Equals(pendingState.Provider, provider, StringComparison.Ordinal)
             && StateManager.TryRemove(response.Data, out var timedState))
         {
+            if (config.RequireLinkedAccount && !HasLinkedUser("oid", provider, timedState.Username))
+            {
+                return ReturnError(StatusCodes.Status403Forbidden, UnlinkedAccountMessage);
+            }
+
             Guid userId = await CreateCanonicalLinkAndUserIfNotExist("oid", provider, timedState.Username);
 
             var authenticationResult = await Authenticate(
@@ -1182,6 +1197,14 @@ public class SSOController : ControllerBase
         }
 
         return userId;
+    }
+
+    private bool HasLinkedUser(string mode, string provider, string canonicalName)
+    {
+        var links = GetCanonicalLinks(mode, provider);
+        return links.TryGetValue(canonicalName, out var userId)
+            && userId != Guid.Empty
+            && _userManager.GetUserById(userId) is not null;
     }
 
     private Guid GetCanonicalLink(string mode, string provider, string canonicalName)

@@ -344,6 +344,13 @@ public class OidConfig
     /// Gets or sets a value indicating whether the UserInfo endpoint is used to get profile data.
     /// </summary>
     public bool DoNotLoadProfile { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether sign-in is limited to identities already linked
+    /// to a Jellyfin user through self-service linking. When set, an unlinked identity is refused:
+    /// no Jellyfin user is created and no user is matched by name.
+    /// </summary>
+    public bool RequireLinkedAccount { get; set; }
 }
 
 /// <summary>

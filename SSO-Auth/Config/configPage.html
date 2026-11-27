@@ -681,6 +681,25 @@
                     May be required for Cloudflare OpenID
                   </div>
                 </div>
+                <div
+                  class="checkboxContainer checkboxContainer-withDescription"
+                >
+                  <label>
+                    <input
+                      is="emby-checkbox"
+                      id="RequireLinkedAccount"
+                      name="RequireLinkedAccount"
+                      type="checkbox"
+                      class="sso-toggle"
+                    />
+                    <span>Require Linked Account</span>
+                  </label>
+                  <div class="fieldDescription checkboxFieldDescription">
+                    Only identities already linked to a Jellyfin user can sign
+                    in. Unlinked sign-ins are refused instead of creating a user
+                    or matching one by name.
+                  </div>
+                </div>
 
                 <div class="inputContainer">
                   <label class="inputLabel inputLabelUnfocused" for="RoleClaim"

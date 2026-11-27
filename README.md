@@ -261,6 +261,7 @@ These all require authorization. Append an API key to the end of the request: `c
     - Leave empty to only request the default scopes.
   - `defaultProvider`: string. The set provider then gets assigned to the user after they have logged in. If it is not set, nothing is changed. With this, a user can login with SSO but is still able to log in via other providers later. See the `Unregister` endpoint.
   - `defaultUsernameClaim`: string. The provider will use the claim to create the users' usernames. If not set, it fallbacks to `preferred_username`.
+  - `requireLinkedAccount`: boolean. When true, only an identity already linked to an existing Jellyfin user (through self-service linking at `/SSOViews/linking`, or the admin link API) can sign in. An unlinked sign-in is refused with HTTP 403 and a plain-text message pointing to `/SSOViews/linking`: no Jellyfin user is created and no existing user is matched by name. Linking itself is unaffected. The link key is the value of the `defaultUsernameClaim` claim, or `sub` when the provider doesn't return that claim. Defaults to `false` (upstream behaviour). Also on the configuration page as **Require Linked Account**.
   - `avatarUrlFormat`: string. The URL format for the users avatars. OIDC claims can be used by using the `@{claim_type}` syntax. If not set, the avatars won't change.
   - `disableHttps`: boolean. Determines whether the OpenID discovery endpoint requires HTTPS.
   - `doNotValidateEndpoints`: boolean. Determines whether the OpenID discovery process will validate endpoints. This may be required for Google.
@@ -276,7 +277,7 @@ These all require authorization. Append an API key to the end of the request: `c
 
 ## Limitations
 
-Logging in with an SSO account that has the same username as an existing Jellyfin account will override the permissions for the user. Use caution when overriding the administrator account!
+Logging in with an SSO account that has the same username as an existing Jellyfin account will override the permissions for the user. Use caution when overriding the administrator account! An OpenID provider with `requireLinkedAccount` enabled never matches or creates an account by name: only an identity already linked to a user signs in.
 
 > When `enableAuthorization` is on, permissions (including the administrator flag) are synced from the provider's roles on every login: a login that does not match any `adminRoles` entry revokes admin, unless `preserveAdminPermissions` is enabled on the provider. Make sure your role mapping is correct before logging in with an admin account.
 
