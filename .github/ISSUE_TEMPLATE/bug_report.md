@@ -1,37 +1,35 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Something in the plugin doesn't work as documented
 title: ""
 labels: bug
 assignees: ""
 ---
 
+<!-- Security vulnerabilities: please don't file them here. Use private vulnerability reporting: https://github.com/irashack/jellyfin-plugin-sso/security/advisories/new -->
+
 **Describe the bug**
-A clear and concise description of what the bug is.
+What happened, and what you expected to happen instead.
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**To reproduce**
+Steps that show the problem:
 
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+1. ...
+2. ...
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Versions**
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+- Jellyfin version: [e.g. 12.0.1]
+- Plugin version: [e.g. 5.1.1.3003, from Jellyfin's plugin page]
+- Provider type: [OpenID Connect or SAML]
+- Identity provider: [e.g. Pocket ID, Authelia, Keycloak]
+- Client: [e.g. web UI in Firefox, Quick Connect from the Android app]
 
 **Configuration**
-Add your plugin configuration XML file here formatted as code (with three backticks surrounding the text), or as an upload to a pastebin service.
+The provider's configuration, with secrets (client secret, certificates) removed. You can copy it from the plugin's configuration XML; wrap it in three backticks.
 
-**Versions (please complete the following information):**
-
-- OS: [e.g. Linux]
-- Browser: [e.g. chrome, safari]
-- Jellyfin Version: [e.g. 10.8 Alpha 4]
-- Plugin Version: [e.g. 2.0.1.0 or a Git tag]
+**Logs**
+The Jellyfin server log lines from the failed sign-in, with tokens and personal details removed.
 
 **Additional context**
-Add any other context about the problem here. Was the plugin built from source?
+Anything else that helps, such as whether the plugin was built from source.

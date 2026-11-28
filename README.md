@@ -58,6 +58,10 @@ This is alpha software. **This version requires Jellyfin 12.0 or later** (.NET 1
 
 **This README reflects the branch it is on. Switch tags to view version-specific documentation.**
 
+## Reporting bugs and security issues
+
+Report bugs and feature requests in this repository's [issues](https://github.com/irashack/jellyfin-plugin-sso/issues/new/choose), and security vulnerabilities privately through [private vulnerability reporting](https://github.com/irashack/jellyfin-plugin-sso/security/advisories/new), never in a public issue. See [SECURITY.md](SECURITY.md).
+
 ## Tested Providers
 
 [Find provider specific documentation in providers.md](providers.md)
