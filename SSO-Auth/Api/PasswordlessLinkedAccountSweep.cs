@@ -21,6 +21,9 @@ namespace Jellyfin.Plugin.SSO_Auth.Api;
 /// </remarks>
 internal sealed class PasswordlessLinkedAccountSweep
 {
+    // The plugin's configuration lock (see PluginConfigurationLock), held through a private field.
+    private static readonly object ConfigLock = PluginConfigurationLock.Sync;
+
     private readonly PluginConfiguration _configuration;
     private readonly IUserManager _userManager;
     private readonly ICryptoProvider _cryptoProvider;
@@ -51,7 +54,7 @@ internal sealed class PasswordlessLinkedAccountSweep
 
         // Copy the link targets under the configuration lock; the writes below happen outside it.
         List<Guid> linkedUserIds;
-        lock (PluginConfigurationLock.Sync)
+        lock (ConfigLock)
         {
             linkedUserIds = new List<Guid>(LinkedUserIds());
         }
