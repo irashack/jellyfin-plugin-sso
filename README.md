@@ -89,6 +89,31 @@ The nightly build may have new features unavailable in other builds, but **be wa
 - [x] Use canonical usernames instead of preferred usernames
 - [x] Add user self-service
 
+## Disabling password sign-in
+
+With **Disable Password Sign-in** on (`disablePasswordLogin`; default `false`), Jellyfin's username and password sign-in is refused, so users can only sign in through this plugin's providers or Quick Connect. It is enforced on the server, not by hiding the login form: the plugin registers an MVC filter that answers Jellyfin's two password sign-in routes, `POST /Users/AuthenticateByName` and the obsolete `POST /Users/{userId}/Authenticate`, with HTTP 403 and a short message before Jellyfin checks the password. Refused attempts are logged as warnings with the username and client address, and they don't count toward Jellyfin's per-user lockout, because Jellyfin never sees them. The setting is read on every request, so saving it takes effect without a restart.
+
+Settings (configuration page, **Disable password sign-in**, saved with their own button):
+
+- `disablePasswordLogin`: boolean, default `false`. Off, the plugin changes nothing about password sign-in.
+- `passwordLoginAllowedUsers`: list of Jellyfin usernames, default empty. These users may still sign in with a password: the break-glass path. Compared case-insensitively, as Jellyfin compares usernames. Keep at least one administrator here; the page asks for confirmation when you disable password sign-in with an empty list.
+- `allowPasswordLoginForUnlinkedUsers`: boolean, default `false`. Also lets an existing user that no OpenID or SAML provider links to sign in with a password, for example local accounts for people without an identity at your provider. Users created by SSO sign-in are always linked, so they stay SSO-only.
+
+What keeps working, and what doesn't:
+
+- **SSO sign-in** through this plugin (web UI, and apps that show the web UI) is unaffected: it starts sessions without a password.
+- **Quick Connect** is unaffected. It is how TV and phone apps whose login screen only has a username and password form sign in: the app shows a code, and a user who is already signed in (through SSO in a browser) approves it. Quick Connect must be enabled in Jellyfin's dashboard (General → Quick Connect); turn it off there if you don't want it.
+- **API keys** (`Authorization: MediaBrowser Token="…"` or `?ApiKey=…`) are unaffected; they never use the password routes. So are **sessions that already exist**: turning the setting on doesn't sign anyone out. To end sessions that were started with a password, sign those devices out in the dashboard (Devices).
+- **Apps signing in with a password** get HTTP 403. Jellyfin's web UI shows its "not authorized" message; other apps show a generic sign-in error. Services that sign in as a user with a password need an API key instead, or their user on `passwordLoginAllowedUsers`.
+- **Password changes and resets** are not blocked, but a new password doesn't let a refused user sign in.
+- **Other authentication providers** (for example the LDAP plugin) are reached through the same password routes, so they are refused too, except for listed and (with `allowPasswordLoginForUnlinkedUsers`) unlinked users.
+
+Which status a client gets tells it something: a listed user (or an unlinked one, with that option) gets Jellyfin's usual 401 for a wrong password, where everyone else gets 403. Someone probing the server can therefore learn which usernames are on the break-glass list, but still needs their passwords.
+
+Locked out? An administrator API key can still change the setting (`POST /Plugins/505ce9d1-d916-42fa-86ca-673ef241d7df/Configuration` with the whole configuration). Or stop Jellyfin, set `<DisablePasswordLogin>false</DisablePasswordLogin>` in `plugins/configurations/SSO-Auth.xml` under Jellyfin's configuration directory, and start it again.
+
+You may also want to hide the password form in the web UI, with an SSO login button in its place. Hiding it is cosmetic; the setting above is what refuses the sign-in.
+
 ## Limitations
 
 Logging in with an SSO account that has the same username as an existing Jellyfin account will override the permissions for the user. Use caution when overriding the administrator account!

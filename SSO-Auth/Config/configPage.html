@@ -81,6 +81,127 @@
           </div>
 
           <form
+            id="sso-password-login"
+            class="esqConfigurationForm sso-config-card"
+          >
+            <div
+              is="emby-collapse"
+              title="Disable password sign-in"
+              data-i18n-title="config.PasswordLoginTitle"
+              class="verticalSection"
+            >
+              <div class="collapseContent">
+                <div class="sso-config-card-heading">
+                  <div>
+                    <p
+                      class="sso-kicker"
+                      data-i18n="config.PasswordLoginKicker"
+                    >
+                      Password sign-in
+                    </p>
+                    <h3
+                      class="sectionTitle"
+                      data-i18n="config.PasswordLoginTitle"
+                    >
+                      Disable password sign-in
+                    </h3>
+                    <p
+                      class="sso-config-copy"
+                      data-i18n="config.PasswordLoginDescription"
+                    >
+                      Applies to the whole server, not to one provider. Has its
+                      own Save button.
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="checkboxContainer checkboxContainer-withDescription"
+                >
+                  <label>
+                    <input
+                      is="emby-checkbox"
+                      id="DisablePasswordLogin"
+                      name="DisablePasswordLogin"
+                      type="checkbox"
+                    />
+                    <span data-i18n="config.fields.DisablePasswordLoginLabel"
+                      >Disable Password Sign-in</span
+                    >
+                  </label>
+                  <div
+                    class="fieldDescription checkboxFieldDescription"
+                    data-i18n="config.fields.DisablePasswordLoginDescription"
+                  >
+                    Refuse Jellyfin's username and password sign-in (HTTP 403)
+                    for everyone except the users below. Sign-in through this
+                    plugin, Quick Connect, API keys and sessions that already
+                    exist keep working. Apps that only offer a password form
+                    must use Quick Connect instead. Off by default; takes effect
+                    at once, no restart needed.
+                  </div>
+                </div>
+                <div class="inputContainer">
+                  <label
+                    class="inputLabel inputLabelUnfocused"
+                    for="PasswordLoginAllowedUsers"
+                    data-i18n="config.fields.PasswordLoginAllowedUsersLabel"
+                    >Users Allowed to Sign In with a Password:</label
+                  >
+                  <textarea
+                    is="emby-textarea"
+                    id="PasswordLoginAllowedUsers"
+                    class="emby-textarea"
+                  ></textarea>
+                  <div
+                    class="fieldDescription"
+                    data-i18n="config.fields.PasswordLoginAllowedUsersDescription"
+                  >
+                    Jellyfin usernames, one per line, that may still sign in
+                    with a password. Keep at least one administrator here as a
+                    break-glass account in case the SSO provider is down.
+                  </div>
+                </div>
+                <div
+                  class="checkboxContainer checkboxContainer-withDescription"
+                >
+                  <label>
+                    <input
+                      is="emby-checkbox"
+                      id="AllowPasswordLoginForUnlinkedUsers"
+                      name="AllowPasswordLoginForUnlinkedUsers"
+                      type="checkbox"
+                    />
+                    <span
+                      data-i18n="config.fields.AllowPasswordLoginForUnlinkedUsersLabel"
+                      >Allow Password Sign-in for Unlinked Users</span
+                    >
+                  </label>
+                  <div
+                    class="fieldDescription checkboxFieldDescription"
+                    data-i18n="config.fields.AllowPasswordLoginForUnlinkedUsersDescription"
+                  >
+                    Also let existing Jellyfin users that no SSO provider links
+                    to sign in with a password. Linked users stay SSO-only. Off
+                    by default.
+                  </div>
+                </div>
+                <div class="sso-config-actions">
+                  <button
+                    id="SavePasswordLogin"
+                    is="emby-button"
+                    type="button"
+                    class="raised button-submit emby-button"
+                  >
+                    <span data-i18n="config.buttons.SavePasswordLogin"
+                      >Save Password Sign-in Settings</span
+                    >
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <form
             id="sso-load-config"
             class="esqConfigurationForm sso-config-card"
           >

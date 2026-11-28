@@ -48,7 +48,8 @@
       "LoadProvider": "Učitaj provajdera",
       "DeleteProvider": "Obriši provajdera",
       "AddRoleMapping": "Dodaj mapiranje uloge",
-      "Save": "Sačuvaj"
+      "Save": "Sačuvaj",
+      "SavePasswordLogin": "Sačuvaj podešavanja prijave lozinkom"
     },
     "fields": {
       "SelectProviderLabel": "Naziv OpenID provajdera:",
@@ -119,14 +120,24 @@
       "SchemeOverrideLabel": "Zamena URL šeme:",
       "SchemeOverrideDescription": "Ako dodatak preusmerava na nebezbedan URL, postavite ovu vrednost na https.",
       "PortOverrideLabel": "Zamena porta:",
-      "PortOverrideDescription": "Ako dodatak preusmerava na pogrešan port, postavite odgovarajući port."
+      "PortOverrideDescription": "Ako dodatak preusmerava na pogrešan port, postavite odgovarajući port.",
+      "DisablePasswordLoginLabel": "Onemogući prijavu lozinkom",
+      "DisablePasswordLoginDescription": "Odbija Jellyfin prijavu korisničkim imenom i lozinkom (HTTP 403) za sve osim korisnika navedenih ispod. Prijava preko ovog dodatka, Quick Connect, API ključevi i postojeće sesije i dalje rade. Aplikacije koje nude samo obrazac za lozinku moraju koristiti Quick Connect. Podrazumevano isključeno; deluje odmah, bez ponovnog pokretanja.",
+      "PasswordLoginAllowedUsersLabel": "Korisnici kojima je dozvoljena prijava lozinkom:",
+      "PasswordLoginAllowedUsersDescription": "Jellyfin korisnička imena, jedno po redu, koja i dalje mogu da se prijave lozinkom. Ostavite bar jednog administratora ovde kao nalog za hitne slučajeve, ako SSO dobavljač ne radi.",
+      "AllowPasswordLoginForUnlinkedUsersLabel": "Dozvoli prijavu lozinkom nepovezanim korisnicima",
+      "AllowPasswordLoginForUnlinkedUsersDescription": "Dozvoljava i postojećim Jellyfin korisnicima koje nijedan SSO dobavljač ne povezuje da se prijave lozinkom. Povezani korisnici ostaju samo na SSO-u. Podrazumevano isključeno."
     },
     "messages": {
       "DeleteProviderConfirm": "Da li ste sigurni da želite da obrišete provajdera {0}?",
       "InvalidAuthorizationParameters": "Parametri autorizacije moraju biti ispravan JSON objekat.",
       "ProviderRemoved": "Provajder je uklonjen",
-      "SettingsSaved": "Podešavanja su sačuvana."
-    }
+      "SettingsSaved": "Podešavanja su sačuvana.",
+      "PasswordLoginEmptyAllowListConfirm": "Nijednom korisniku nije dozvoljena prijava lozinkom. Ako SSO prestane da radi, niko neće moći da se prijavi na Jellyfin dok se konfiguracija dodatka ne promeni administratorskim API ključem ili izmenom datoteke SSO-Auth.xml. Nastaviti?"
+    },
+    "PasswordLoginKicker": "Prijava lozinkom",
+    "PasswordLoginTitle": "Onemogući prijavu lozinkom",
+    "PasswordLoginDescription": "Važi za ceo server, ne za jednog dobavljača. Ima sopstveno dugme Sačuvaj."
   },
   "linking": {
     "PageTitle": "SSO povezivanje",

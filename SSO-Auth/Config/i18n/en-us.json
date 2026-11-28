@@ -48,7 +48,8 @@
       "LoadProvider": "Load Provider",
       "DeleteProvider": "Delete Provider",
       "AddRoleMapping": "Add role mapping",
-      "Save": "Save"
+      "Save": "Save",
+      "SavePasswordLogin": "Save Password Sign-in Settings"
     },
     "fields": {
       "SelectProviderLabel": "Name of OpenID Provider:",
@@ -119,14 +120,24 @@
       "SchemeOverrideLabel": "Scheme Override:",
       "SchemeOverrideDescription": "If the plugin redirects to an insecure URL, set this to https.",
       "PortOverrideLabel": "Port Override:",
-      "PortOverrideDescription": "If the plugin redirects to an incorrect port, set this to the appropriate port."
+      "PortOverrideDescription": "If the plugin redirects to an incorrect port, set this to the appropriate port.",
+      "DisablePasswordLoginLabel": "Disable Password Sign-in",
+      "DisablePasswordLoginDescription": "Refuse Jellyfin's username and password sign-in (HTTP 403) for everyone except the users below. Sign-in through this plugin, Quick Connect, API keys and sessions that already exist keep working. Apps that only offer a password form must use Quick Connect instead. Off by default; takes effect at once, no restart needed.",
+      "PasswordLoginAllowedUsersLabel": "Users Allowed to Sign In with a Password:",
+      "PasswordLoginAllowedUsersDescription": "Jellyfin usernames, one per line, that may still sign in with a password. Keep at least one administrator here as a break-glass account in case the SSO provider is down.",
+      "AllowPasswordLoginForUnlinkedUsersLabel": "Allow Password Sign-in for Unlinked Users",
+      "AllowPasswordLoginForUnlinkedUsersDescription": "Also let existing Jellyfin users that no SSO provider links to sign in with a password. Linked users stay SSO-only. Off by default."
     },
     "messages": {
       "DeleteProviderConfirm": "Are you sure you want to delete the provider {0}?",
       "InvalidAuthorizationParameters": "Authorization parameters must be a valid JSON object.",
       "ProviderRemoved": "Provider removed",
-      "SettingsSaved": "Settings saved."
-    }
+      "SettingsSaved": "Settings saved.",
+      "PasswordLoginEmptyAllowListConfirm": "No user is allowed to sign in with a password. If SSO stops working, no one can sign in to Jellyfin until the plugin configuration is changed with an administrator API key or by editing SSO-Auth.xml. Continue?"
+    },
+    "PasswordLoginKicker": "Password sign-in",
+    "PasswordLoginTitle": "Disable password sign-in",
+    "PasswordLoginDescription": "Applies to the whole server, not to one provider. Has its own Save button."
   },
   "linking": {
     "PageTitle": "SSO Linking",

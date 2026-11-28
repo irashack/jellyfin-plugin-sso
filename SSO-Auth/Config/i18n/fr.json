@@ -48,7 +48,8 @@
       "LoadProvider": "Charger le fournisseur",
       "DeleteProvider": "Supprimer le fournisseur",
       "AddRoleMapping": "Ajouter un mapping de rôle",
-      "Save": "Enregistrer"
+      "Save": "Enregistrer",
+      "SavePasswordLogin": "Enregistrer les paramètres de connexion par mot de passe"
     },
     "fields": {
       "SelectProviderLabel": "Nom du fournisseur OpenID :",
@@ -119,14 +120,24 @@
       "SchemeOverrideLabel": "Forcer le schéma :",
       "SchemeOverrideDescription": "Si le plugin redirige vers une URL non sécurisée, définissez cette valeur sur https.",
       "PortOverrideLabel": "Forcer le port :",
-      "PortOverrideDescription": "Si le plugin redirige vers un port incorrect, définissez cette valeur sur le port approprié."
+      "PortOverrideDescription": "Si le plugin redirige vers un port incorrect, définissez cette valeur sur le port approprié.",
+      "DisablePasswordLoginLabel": "Désactiver la connexion par mot de passe",
+      "DisablePasswordLoginDescription": "Refuse la connexion Jellyfin par nom d'utilisateur et mot de passe (HTTP 403) pour tous sauf les utilisateurs ci-dessous. La connexion via ce plugin, Quick Connect, les clés API et les sessions existantes continuent de fonctionner. Les applications qui ne proposent qu'un formulaire de mot de passe doivent utiliser Quick Connect. Désactivé par défaut ; prend effet immédiatement, sans redémarrage.",
+      "PasswordLoginAllowedUsersLabel": "Utilisateurs autorisés à se connecter avec un mot de passe :",
+      "PasswordLoginAllowedUsersDescription": "Noms d'utilisateur Jellyfin, un par ligne, qui peuvent encore se connecter avec un mot de passe. Gardez au moins un administrateur ici comme compte de secours au cas où le fournisseur SSO serait indisponible.",
+      "AllowPasswordLoginForUnlinkedUsersLabel": "Autoriser le mot de passe pour les utilisateurs non liés",
+      "AllowPasswordLoginForUnlinkedUsersDescription": "Permet aussi aux utilisateurs Jellyfin existants qu'aucun fournisseur SSO ne lie de se connecter avec un mot de passe. Les utilisateurs liés restent SSO uniquement. Désactivé par défaut."
     },
     "messages": {
       "DeleteProviderConfirm": "Êtes-vous sûr de vouloir supprimer le fournisseur {0} ?",
       "InvalidAuthorizationParameters": "Les paramètres d'autorisation doivent être un objet JSON valide.",
       "ProviderRemoved": "Fournisseur supprimé",
-      "SettingsSaved": "Paramètres enregistrés."
-    }
+      "SettingsSaved": "Paramètres enregistrés.",
+      "PasswordLoginEmptyAllowListConfirm": "Aucun utilisateur n'est autorisé à se connecter avec un mot de passe. Si le SSO cesse de fonctionner, personne ne pourra se connecter à Jellyfin tant que la configuration du plugin n'aura pas été modifiée avec une clé API d'administrateur ou en éditant SSO-Auth.xml. Continuer ?"
+    },
+    "PasswordLoginKicker": "Connexion par mot de passe",
+    "PasswordLoginTitle": "Désactiver la connexion par mot de passe",
+    "PasswordLoginDescription": "S'applique à tout le serveur, pas à un fournisseur. Possède son propre bouton Enregistrer."
   },
   "linking": {
     "PageTitle": "Liaison SSO",
