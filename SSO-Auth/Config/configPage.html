@@ -35,7 +35,7 @@
               class="raised emby-button button-alt sso-help-button"
               target="_blank"
               rel="noopener noreferrer"
-              href="https://github.com/k0lin/jellyfin-plugin-sso"
+              href="https://github.com/irashack/jellyfin-plugin-sso"
             >
               <span class="material-icons help" aria-hidden="true"></span>
               <span data-i18n="common.Help">Help</span>
@@ -46,7 +46,9 @@
               Before you save
             </p>
             <p class="sso-config-copy" data-i18n="config.RestartNotice">
-              Changes to this configuration require a Jellyfin restart.
+              Settings take effect as soon as they are saved; no Jellyfin
+              restart is needed. Installing or updating the plugin does need a
+              restart.
             </p>
             <p class="sso-config-copy" data-i18n="config.UiCoverageNotice">
               This UI currently manages OpenID Connect providers. Some advanced
@@ -79,6 +81,127 @@
               >.
             </p>
           </div>
+
+          <form
+            id="sso-password-login"
+            class="esqConfigurationForm sso-config-card"
+          >
+            <div
+              is="emby-collapse"
+              title="Disable password sign-in"
+              data-i18n-title="config.PasswordLoginTitle"
+              class="verticalSection"
+            >
+              <div class="collapseContent">
+                <div class="sso-config-card-heading">
+                  <div>
+                    <p
+                      class="sso-kicker"
+                      data-i18n="config.PasswordLoginKicker"
+                    >
+                      Password sign-in
+                    </p>
+                    <h3
+                      class="sectionTitle"
+                      data-i18n="config.PasswordLoginTitle"
+                    >
+                      Disable password sign-in
+                    </h3>
+                    <p
+                      class="sso-config-copy"
+                      data-i18n="config.PasswordLoginDescription"
+                    >
+                      Applies to the whole server, not to one provider. Has its
+                      own Save button.
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="checkboxContainer checkboxContainer-withDescription"
+                >
+                  <label>
+                    <input
+                      is="emby-checkbox"
+                      id="DisablePasswordLogin"
+                      name="DisablePasswordLogin"
+                      type="checkbox"
+                    />
+                    <span data-i18n="config.fields.DisablePasswordLoginLabel"
+                      >Disable Password Sign-in</span
+                    >
+                  </label>
+                  <div
+                    class="fieldDescription checkboxFieldDescription"
+                    data-i18n="config.fields.DisablePasswordLoginDescription"
+                  >
+                    Refuse Jellyfin's username and password sign-in (HTTP 403)
+                    for everyone except the users below. Sign-in through this
+                    plugin, Quick Connect, API keys and sessions that already
+                    exist keep working. Apps that only offer a password form
+                    must use Quick Connect instead. Off by default; takes effect
+                    at once, no restart needed.
+                  </div>
+                </div>
+                <div class="inputContainer">
+                  <label
+                    class="inputLabel inputLabelUnfocused"
+                    for="PasswordLoginAllowedUsers"
+                    data-i18n="config.fields.PasswordLoginAllowedUsersLabel"
+                    >Users Allowed to Sign In with a Password:</label
+                  >
+                  <textarea
+                    is="emby-textarea"
+                    id="PasswordLoginAllowedUsers"
+                    class="emby-textarea"
+                  ></textarea>
+                  <div
+                    class="fieldDescription"
+                    data-i18n="config.fields.PasswordLoginAllowedUsersDescription"
+                  >
+                    Jellyfin usernames, one per line, that may still sign in
+                    with a password. Keep at least one administrator here as a
+                    break-glass account in case the SSO provider is down.
+                  </div>
+                </div>
+                <div
+                  class="checkboxContainer checkboxContainer-withDescription"
+                >
+                  <label>
+                    <input
+                      is="emby-checkbox"
+                      id="AllowPasswordLoginForUnlinkedUsers"
+                      name="AllowPasswordLoginForUnlinkedUsers"
+                      type="checkbox"
+                    />
+                    <span
+                      data-i18n="config.fields.AllowPasswordLoginForUnlinkedUsersLabel"
+                      >Allow Password Sign-in for Unlinked Users</span
+                    >
+                  </label>
+                  <div
+                    class="fieldDescription checkboxFieldDescription"
+                    data-i18n="config.fields.AllowPasswordLoginForUnlinkedUsersDescription"
+                  >
+                    Also let existing Jellyfin users that no SSO provider links
+                    to sign in with a password. Linked users stay SSO-only. Off
+                    by default.
+                  </div>
+                </div>
+                <div class="sso-config-actions">
+                  <button
+                    id="SavePasswordLogin"
+                    is="emby-button"
+                    type="button"
+                    class="raised button-submit emby-button"
+                  >
+                    <span data-i18n="config.buttons.SavePasswordLogin"
+                      >Save Password Sign-in Settings</span
+                    >
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
 
           <form
             id="sso-load-config"
@@ -364,6 +487,34 @@
                   </label>
                 </div>
 
+                <div
+                  class="checkboxContainer checkboxContainer-withDescription"
+                >
+                  <label>
+                    <input
+                      is="emby-checkbox"
+                      id="RequireLinkedAccount"
+                      name="RequireLinkedAccount"
+                      type="checkbox"
+                      class="sso-toggle"
+                    />
+                    <span data-i18n="config.fields.RequireLinkedAccountLabel"
+                      >Require Linked Account</span
+                    >
+                  </label>
+                  <div
+                    class="fieldDescription checkboxFieldDescription"
+                    data-i18n="config.fields.RequireLinkedAccountDescription"
+                  >
+                    Only identities already linked to a Jellyfin user can sign
+                    in. An unlinked sign-in is refused (HTTP 403) instead of
+                    creating a user or matching one by name. Users link
+                    themselves from the self-service linking page after signing
+                    in another way, or an administrator links them through the
+                    admin link API.
+                  </div>
+                </div>
+
                 <div class="selectContainer">
                   <label
                     class="selectLabel"
@@ -457,13 +608,11 @@
                     class="fieldDescription checkboxFieldDescription"
                     data-i18n="config.fields.EnableAuthorizationDescription"
                   >
-                    Determines if the plugin sets permissions for the user.
-                    <br />
-                    If false, the user will start with no permissions and an
-                    administrator will add permissions.
-                    <br />
-                    The permissions of existing users will not be rewritten on
-                    subsequent logins.
+                    Determines if the plugin sets permissions for the user:
+                    administrator, libraries, Live TV and content downloads, on
+                    every login. If false, the plugin never changes a user's
+                    permissions, users it creates start with no libraries, and
+                    administrators assign access in Jellyfin.
                   </div>
                 </div>
 
@@ -784,10 +933,10 @@
                     class="fieldDescription checkboxFieldDescription"
                     data-i18n="config.fields.EnableLiveTvDescription"
                   >
-                    Determines whether the user can view Live TV by default.
-                    <br />
-                    This value is still used if <strong>Live TV RBAC</strong> is
-                    enabled!
+                    Determines whether users can view Live TV by default. This
+                    value is still used when Live TV RBAC is enabled. Like every
+                    Live TV setting, it is only applied when Enable
+                    Authorization by Plugin is on.
                   </div>
                 </div>
 
@@ -810,10 +959,10 @@
                     class="fieldDescription checkboxFieldDescription"
                     data-i18n="config.fields.EnableLiveTvManagementDescription"
                   >
-                    Determines whether the user can manage Live TV by default.
-                    <br />
-                    This value is still used if <strong>Live TV RBAC</strong> is
-                    enabled!
+                    Determines whether users can manage Live TV by default. This
+                    value is still used when Live TV RBAC is enabled. Like every
+                    Live TV setting, it is only applied when Enable
+                    Authorization by Plugin is on.
                   </div>
                 </div>
 
@@ -900,7 +1049,7 @@
                     For some OIDC providers (For example,
                     <a
                       is="emby-linkbutton"
-                      href="https://github.com/k0lin/jellyfin-plugin-sso/issues/23#issuecomment-1112237616"
+                      href="https://github.com/9p4/jellyfin-plugin-sso/issues/23#issuecomment-1112237616"
                       class="button-link"
                       >authelia</a
                     >), additional scopes may be required in order to validate
@@ -956,9 +1105,9 @@
                     class="fieldDescription"
                     data-i18n="config.fields.DefaultUsernameClaimDescription"
                   >
-                    The default username claim to use from OpenID by default. If
-                    it is not set, it defaults to
-                    <code>preferred_username</code>.
+                    OpenID claim used as the Jellyfin username and as the
+                    identity's link key. Defaults to preferred_username when
+                    unset; when the claim is missing, sub is used.
                   </div>
                 </div>
 

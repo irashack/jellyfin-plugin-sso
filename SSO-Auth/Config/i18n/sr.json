@@ -10,7 +10,7 @@
     "HeaderDescription": "Podesite OpenID Connect provajdere, pravila autorizacije i način kreiranja i podešavanja korisnika za Jellyfin SSO.",
     "Help": "Pomoć",
     "OverviewTitle": "Pre nego što sačuvate",
-    "RestartNotice": "Promene ove konfiguracije zahtevaju ponovno pokretanje Jellyfin-a.",
+    "RestartNotice": "Podešavanja stupaju na snagu čim se sačuvaju; ponovno pokretanje Jellyfin-a nije potrebno. Instalacija ili ažuriranje dodatka ga ipak zahteva.",
     "UiCoverageNotice": "Ovaj interfejs trenutno upravlja OpenID Connect provajderima. Neke napredne opcije, uključujući podešavanje SAML provajdera, i dalje mogu zahtevati korišćenje API-ja.",
     "SelfServiceNotice": "Korisnici mogu da upravljaju povezanim SSO nalozima sa stranice za samostalno povezivanje.",
     "SelfServiceLink": "Otvori samostalno povezivanje",
@@ -48,7 +48,8 @@
       "LoadProvider": "Učitaj provajdera",
       "DeleteProvider": "Obriši provajdera",
       "AddRoleMapping": "Dodaj mapiranje uloge",
-      "Save": "Sačuvaj"
+      "Save": "Sačuvaj",
+      "SavePasswordLogin": "Sačuvaj podešavanja prijave lozinkom"
     },
     "fields": {
       "SelectProviderLabel": "Naziv OpenID provajdera:",
@@ -69,7 +70,7 @@
       "ApplyContentDownloadPermissionOnEveryLoginLabel": "Primeni dozvolu za preuzimanje sadržaja pri svakoj prijavi",
       "ApplyContentDownloadPermissionOnEveryLoginDescription": "Kada je onemogućeno, izabrana dozvola se primenjuje samo kada se korisnik kreira putem ovog provajdera.",
       "EnableAuthorizationLabel": "Omogući autorizaciju putem dodatka",
-      "EnableAuthorizationDescription": "Određuje da li dodatak postavlja dozvole korisniku. Ako je onemogućeno, korisnici počinju bez dozvola, a administratori ih naknadno dodeljuju. Postojeće korisničke dozvole se ne menjaju pri kasnijim prijavama.",
+      "EnableAuthorizationDescription": "Određuje da li dodatak postavlja dozvole korisnika: administrator, biblioteke, TV uživo i preuzimanje sadržaja, pri svakoj prijavi. Ako je isključeno, dodatak nikada ne menja dozvole korisnika, korisnici koje kreira počinju bez biblioteka, a administratori dodeljuju pristup u Jellyfin-u.",
       "EnableAllFoldersLabel": "Omogući sve fascikle",
       "EnableAllFoldersDescription": "Ako je omogućeno, korisnicima koji se prijavljuju putem ovog provajdera dostupne su sve biblioteke.",
       "EnabledFoldersLabel": "Omogućene fascikle:",
@@ -92,9 +93,9 @@
       "LiveTvManagementRolesLabel": "Uloge za upravljanje TV-om uživo:",
       "LiveTvManagementRolesDescription": "Uloge koje treba tražiti u OpenID odgovoru, jedna po redu. Korisnici sa bilo kojom navedenom ulogom dobijaju privilegije za upravljanje TV-om uživo.",
       "EnableLiveTvLabel": "Podrazumevano omogući pristup TV-u uživo",
-      "EnableLiveTvDescription": "Određuje da li korisnici podrazumevano mogu da gledaju TV uživo. Ova vrednost se koristi i kada je RBAC za TV uživo omogućen.",
+      "EnableLiveTvDescription": "Određuje da li korisnici podrazumevano mogu da gledaju TV uživo. Ova vrednost se koristi i kada je RBAC za TV uživo uključen. Kao i sva podešavanja TV-a uživo, primenjuje se samo kada je uključena opcija „Omogući autorizaciju preko dodatka”.",
       "EnableLiveTvManagementLabel": "Podrazumevano omogući upravljanje TV-om uživo",
-      "EnableLiveTvManagementDescription": "Određuje da li korisnici podrazumevano mogu da upravljaju TV-om uživo. Ova vrednost se koristi i kada je RBAC za TV uživo omogućen.",
+      "EnableLiveTvManagementDescription": "Određuje da li korisnici podrazumevano mogu da upravljaju TV-om uživo. Ova vrednost se koristi i kada je RBAC za TV uživo uključen. Kao i sva podešavanja TV-a uživo, primenjuje se samo kada je uključena opcija „Omogući autorizaciju preko dodatka”.",
       "RoleClaimLabel": "Claim uloge:",
       "RoleClaimDescription": "Putanja OpenID claim-a koja se koristi za čitanje uloga. Koristite \\\"\\.\\\" za doslovnu tačku. Primeri: realm_access.roles, resource_access.<clientId>.roles ili groups.",
       "OverrideDefaultScopesLabel": "Zameni podrazumevane OIDC scope-ove",
@@ -106,7 +107,7 @@
       "DefaultProviderLabel": "Postavi podrazumevanog provajdera:",
       "DefaultProviderDescription": "Provajder autentifikacije koji se dodeljuje nakon SSO prijave. Ostavite prazno da biste zadržali postojećeg provajdera. Uobičajena podrazumevana vrednost je Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider.",
       "DefaultUsernameClaimLabel": "Postavi podrazumevani claim korisničkog imena:",
-      "DefaultUsernameClaimDescription": "OpenID claim koji se koristi kao Jellyfin korisničko ime. Ako nije podešen, podrazumevana vrednost je preferred_username.",
+      "DefaultUsernameClaimDescription": "OpenID claim koji se koristi kao Jellyfin korisničko ime i kao ključ za povezivanje identiteta. Podrazumevano preferred_username; ako claim nedostaje, koristi se sub.",
       "AvatarUrlFormatLabel": "Postavi format URL-a avatara:",
       "AvatarUrlFormatDescription": "Format URL-a avatara. OIDC claim-ovi mogu se navesti pomoću @{claim_name}, na primer https://example.invalid/@{user_id}.png.",
       "DisableHttpsLabel": "Onemogući OpenID HTTPS otkrivanje (nebezbedno)",
@@ -119,14 +120,26 @@
       "SchemeOverrideLabel": "Zamena URL šeme:",
       "SchemeOverrideDescription": "Ako dodatak preusmerava na nebezbedan URL, postavite ovu vrednost na https.",
       "PortOverrideLabel": "Zamena porta:",
-      "PortOverrideDescription": "Ako dodatak preusmerava na pogrešan port, postavite odgovarajući port."
+      "PortOverrideDescription": "Ako dodatak preusmerava na pogrešan port, postavite odgovarajući port.",
+      "RequireLinkedAccountLabel": "Zahtevaj povezan nalog",
+      "RequireLinkedAccountDescription": "Prijaviti se mogu samo identiteti koji su već povezani sa Jellyfin korisnikom. Nepovezana prijava se odbija (HTTP 403) umesto da se kreira korisnik ili pronađe po imenu. Korisnici se sami povezuju na stranici za povezivanje nakon prijave na drugi način, ili ih administrator povezuje preko administratorskog API-ja za povezivanje.",
+      "DisablePasswordLoginLabel": "Onemogući prijavu lozinkom",
+      "DisablePasswordLoginDescription": "Odbija Jellyfin prijavu korisničkim imenom i lozinkom (HTTP 403) za sve osim korisnika navedenih ispod. Prijava preko ovog dodatka, Quick Connect, API ključevi i postojeće sesije i dalje rade. Aplikacije koje nude samo obrazac za lozinku moraju koristiti Quick Connect. Podrazumevano isključeno; deluje odmah, bez ponovnog pokretanja.",
+      "PasswordLoginAllowedUsersLabel": "Korisnici kojima je dozvoljena prijava lozinkom:",
+      "PasswordLoginAllowedUsersDescription": "Jellyfin korisnička imena, jedno po redu, koja i dalje mogu da se prijave lozinkom. Ostavite bar jednog administratora ovde kao nalog za hitne slučajeve, ako SSO dobavljač ne radi.",
+      "AllowPasswordLoginForUnlinkedUsersLabel": "Dozvoli prijavu lozinkom nepovezanim korisnicima",
+      "AllowPasswordLoginForUnlinkedUsersDescription": "Dozvoljava i postojećim Jellyfin korisnicima koje nijedan SSO dobavljač ne povezuje da se prijave lozinkom. Povezani korisnici ostaju samo na SSO-u. Podrazumevano isključeno."
     },
     "messages": {
       "DeleteProviderConfirm": "Da li ste sigurni da želite da obrišete provajdera {0}?",
       "InvalidAuthorizationParameters": "Parametri autorizacije moraju biti ispravan JSON objekat.",
       "ProviderRemoved": "Provajder je uklonjen",
-      "SettingsSaved": "Podešavanja su sačuvana."
-    }
+      "SettingsSaved": "Podešavanja su sačuvana.",
+      "PasswordLoginEmptyAllowListConfirm": "Nijednom korisniku nije dozvoljena prijava lozinkom. Ako SSO prestane da radi, niko neće moći da se prijavi na Jellyfin dok se konfiguracija dodatka ne promeni administratorskim API ključem ili izmenom datoteke SSO-Auth.xml. Nastaviti?"
+    },
+    "PasswordLoginKicker": "Prijava lozinkom",
+    "PasswordLoginTitle": "Onemogući prijavu lozinkom",
+    "PasswordLoginDescription": "Važi za ceo server, ne za jednog dobavljača. Ima sopstveno dugme Sačuvaj."
   },
   "linking": {
     "PageTitle": "SSO povezivanje",
@@ -144,6 +157,10 @@
     "LinkAccount": "Poveži nalog",
     "LinkedIdentities": "Povezani identiteti",
     "NoIdentityLinked": "Nijedan identitet nije povezan sa ovim provajderom.",
-    "NoProvidersConfigured": "Još uvek nema podešenih {0} provajdera."
+    "NoProvidersConfigured": "Još uvek nema podešenih {0} provajdera.",
+    "StartingLink": "Otvaranje {0}…",
+    "StartLinkFailed": "Nije moguće pokrenuti povezivanje sa {0}. Pokušajte ponovo.",
+    "DeleteConfirm": "Obrisati {0} izabranih veza? Možete izgubiti pristup ako nemate drugi način prijave.",
+    "DeleteFailed": "Nije moguće obrisati izabrane veze. Proverite izbor i pokušajte ponovo."
   }
 }

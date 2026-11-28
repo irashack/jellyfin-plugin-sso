@@ -1,6 +1,7 @@
 <!-- omit in toc -->
-
 # Contributing to Jellyfin SSO Plugin
+
+> **About this fork:** irashack/jellyfin-plugin-sso has GitHub issues and discussions turned off. It is [K0lin/jellyfin-plugin-sso](https://github.com/K0lin/jellyfin-plugin-sso) plus the changes listed under "About this fork" in the [README](README.md). Questions, bugs and ideas about the code the two share belong in K0lin's tracker, which the links below point to; please don't report problems with this fork's own additions there.
 
 First off, thanks for taking the time to contribute! ❤️
 

@@ -1,3 +1,3 @@
-Please email all security vulnerabilities and issues found to the email "security-jellyfin-sso at k0lin dot com". If using LLMs/AI to find the issues, first verify the issue exists manually. Please do not publicly disclose security vulnerabilities until after a stable release for the fix has been released for 30 days.
+This fork (irashack/jellyfin-plugin-sso) is [K0lin/jellyfin-plugin-sso](https://github.com/K0lin/jellyfin-plugin-sso) plus the changes listed in the README. It has no private reporting channel of its own. For a vulnerability in code it shares with K0lin's fork, email K0lin's security contact, "security-jellyfin-sso at k0lin dot com". If using LLMs/AI to find the issues, first verify the issue exists manually. Please do not publicly disclose security vulnerabilities until after a stable release for the fix has been released for 30 days.
 
 The latest released version is the only supported version.

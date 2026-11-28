@@ -49,7 +49,14 @@ internal sealed class PasswordlessLinkedAccountSweep
     {
         var sealedAccounts = 0;
 
-        foreach (var userId in LinkedUserIds())
+        // Copy the link targets under the configuration lock; the writes below happen outside it.
+        List<Guid> linkedUserIds;
+        lock (PluginConfigurationLock.Sync)
+        {
+            linkedUserIds = new List<Guid>(LinkedUserIds());
+        }
+
+        foreach (var userId in linkedUserIds)
         {
             // A link can outlive its account; skip it rather than fail the whole pass.
             if (_userManager.GetUserById(userId) is not { } user)

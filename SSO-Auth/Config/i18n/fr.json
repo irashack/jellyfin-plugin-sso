@@ -10,7 +10,7 @@
     "HeaderDescription": "Configurez les fournisseurs OpenID Connect, les règles d'autorisation et le comportement de provisionnement des utilisateurs pour le SSO Jellyfin.",
     "Help": "Aide",
     "OverviewTitle": "Avant d'enregistrer",
-    "RestartNotice": "Les modifications de cette configuration nécessitent un redémarrage de Jellyfin.",
+    "RestartNotice": "Les paramètres prennent effet dès leur enregistrement ; aucun redémarrage de Jellyfin n'est nécessaire. L'installation ou la mise à jour du plugin en demande un.",
     "UiCoverageNotice": "Cette interface gère actuellement les fournisseurs OpenID Connect. Certaines options avancées, notamment la configuration des fournisseurs SAML, peuvent encore nécessiter l'API.",
     "SelfServiceNotice": "Les utilisateurs peuvent gérer leurs comptes SSO liés depuis la page de liaison en libre-service.",
     "SelfServiceLink": "Ouvrir la liaison en libre-service",
@@ -48,7 +48,8 @@
       "LoadProvider": "Charger le fournisseur",
       "DeleteProvider": "Supprimer le fournisseur",
       "AddRoleMapping": "Ajouter un mapping de rôle",
-      "Save": "Enregistrer"
+      "Save": "Enregistrer",
+      "SavePasswordLogin": "Enregistrer les paramètres de connexion par mot de passe"
     },
     "fields": {
       "SelectProviderLabel": "Nom du fournisseur OpenID :",
@@ -69,7 +70,7 @@
       "ApplyContentDownloadPermissionOnEveryLoginLabel": "Appliquer l'autorisation de téléchargement à chaque connexion",
       "ApplyContentDownloadPermissionOnEveryLoginDescription": "Lorsqu'elle est désactivée, l'autorisation sélectionnée s'applique uniquement lorsqu'un utilisateur est créé via ce fournisseur.",
       "EnableAuthorizationLabel": "Activer l'autorisation par le plugin",
-      "EnableAuthorizationDescription": "Détermine si le plugin attribue les autorisations de l'utilisateur. Si cette option est désactivée, les utilisateurs démarrent sans autorisation et les administrateurs les attribuent ensuite manuellement. Les autorisations existantes ne sont pas réécrites lors des connexions ultérieures.",
+      "EnableAuthorizationDescription": "Détermine si le plugin définit les autorisations de l'utilisateur : administrateur, bibliothèques, TV en direct et téléchargement de contenu, à chaque connexion. Si désactivé, le plugin ne modifie jamais les autorisations d'un utilisateur, les utilisateurs qu'il crée n'ont accès à aucune bibliothèque, et les administrateurs attribuent les accès dans Jellyfin.",
       "EnableAllFoldersLabel": "Autoriser toutes les bibliothèques",
       "EnableAllFoldersDescription": "Si activé, toutes les bibliothèques sont accessibles aux utilisateurs se connectant via ce fournisseur.",
       "EnabledFoldersLabel": "Bibliothèques autorisées :",
@@ -92,9 +93,9 @@
       "LiveTvManagementRolesLabel": "Rôles de gestion TV en direct :",
       "LiveTvManagementRolesDescription": "Rôles à rechercher dans la réponse OpenID, un par ligne. Les utilisateurs possédant l'un des rôles listés reçoivent les privilèges de gestion de la TV en direct.",
       "EnableLiveTvLabel": "Activer l'accès à la TV en direct par défaut",
-      "EnableLiveTvDescription": "Détermine si les utilisateurs peuvent regarder la TV en direct par défaut. Cette valeur reste utilisée même lorsque le RBAC TV en direct est activé.",
+      "EnableLiveTvDescription": "Détermine si les utilisateurs peuvent regarder la TV en direct par défaut. Cette valeur reste utilisée lorsque le RBAC TV en direct est activé. Comme tous les paramètres TV en direct, elle n'est appliquée que si « Activer l'autorisation par le plugin » est activé.",
       "EnableLiveTvManagementLabel": "Activer la gestion de la TV en direct par défaut",
-      "EnableLiveTvManagementDescription": "Détermine si les utilisateurs peuvent gérer la TV en direct par défaut. Cette valeur reste utilisée même lorsque le RBAC TV en direct est activé.",
+      "EnableLiveTvManagementDescription": "Détermine si les utilisateurs peuvent gérer la TV en direct par défaut. Cette valeur reste utilisée lorsque le RBAC TV en direct est activé. Comme tous les paramètres TV en direct, elle n'est appliquée que si « Activer l'autorisation par le plugin » est activé.",
       "RoleClaimLabel": "Claim de rôle :",
       "RoleClaimDescription": "Le chemin du claim OpenID utilisé pour lire les rôles. Utilisez \"\\.\" pour un point littéral. Exemples : realm_access.roles, resource_access.<clientId>.roles, ou groups.",
       "OverrideDefaultScopesLabel": "Remplacer les scopes OIDC par défaut",
@@ -106,7 +107,7 @@
       "DefaultProviderLabel": "Définir le fournisseur par défaut :",
       "DefaultProviderDescription": "Fournisseur d'authentification attribué après la connexion SSO. Laissez vide pour conserver le fournisseur existant. Une valeur courante est Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider.",
       "DefaultUsernameClaimLabel": "Définir le claim de nom d'utilisateur par défaut :",
-      "DefaultUsernameClaimDescription": "Claim OpenID utilisé comme nom d'utilisateur Jellyfin. Par défaut preferred_username si non défini.",
+      "DefaultUsernameClaimDescription": "Claim OpenID utilisé comme nom d'utilisateur Jellyfin et comme clé de liaison de l'identité. Par défaut preferred_username ; si le claim est absent, sub est utilisé.",
       "AvatarUrlFormatLabel": "Définir le format d'URL d'avatar :",
       "AvatarUrlFormatDescription": "Format d'URL d'avatar. Les claims OIDC peuvent être référencés avec @{nom_du_claim}, par exemple https://example.invalid/@{user_id}.png.",
       "DisableHttpsLabel": "Désactiver la découverte HTTPS OpenID (Non sécurisé)",
@@ -119,14 +120,26 @@
       "SchemeOverrideLabel": "Forcer le schéma :",
       "SchemeOverrideDescription": "Si le plugin redirige vers une URL non sécurisée, définissez cette valeur sur https.",
       "PortOverrideLabel": "Forcer le port :",
-      "PortOverrideDescription": "Si le plugin redirige vers un port incorrect, définissez cette valeur sur le port approprié."
+      "PortOverrideDescription": "Si le plugin redirige vers un port incorrect, définissez cette valeur sur le port approprié.",
+      "RequireLinkedAccountLabel": "Exiger un compte lié",
+      "RequireLinkedAccountDescription": "Seules les identités déjà liées à un utilisateur Jellyfin peuvent se connecter. Une connexion non liée est refusée (HTTP 403) au lieu de créer un utilisateur ou d'en associer un par son nom. Les utilisateurs se lient eux-mêmes depuis la page de liaison après s'être connectés autrement, ou un administrateur les lie via l'API de liaison d'administration.",
+      "DisablePasswordLoginLabel": "Désactiver la connexion par mot de passe",
+      "DisablePasswordLoginDescription": "Refuse la connexion Jellyfin par nom d'utilisateur et mot de passe (HTTP 403) pour tous sauf les utilisateurs ci-dessous. La connexion via ce plugin, Quick Connect, les clés API et les sessions existantes continuent de fonctionner. Les applications qui ne proposent qu'un formulaire de mot de passe doivent utiliser Quick Connect. Désactivé par défaut ; prend effet immédiatement, sans redémarrage.",
+      "PasswordLoginAllowedUsersLabel": "Utilisateurs autorisés à se connecter avec un mot de passe :",
+      "PasswordLoginAllowedUsersDescription": "Noms d'utilisateur Jellyfin, un par ligne, qui peuvent encore se connecter avec un mot de passe. Gardez au moins un administrateur ici comme compte de secours au cas où le fournisseur SSO serait indisponible.",
+      "AllowPasswordLoginForUnlinkedUsersLabel": "Autoriser le mot de passe pour les utilisateurs non liés",
+      "AllowPasswordLoginForUnlinkedUsersDescription": "Permet aussi aux utilisateurs Jellyfin existants qu'aucun fournisseur SSO ne lie de se connecter avec un mot de passe. Les utilisateurs liés restent SSO uniquement. Désactivé par défaut."
     },
     "messages": {
       "DeleteProviderConfirm": "Êtes-vous sûr de vouloir supprimer le fournisseur {0} ?",
       "InvalidAuthorizationParameters": "Les paramètres d'autorisation doivent être un objet JSON valide.",
       "ProviderRemoved": "Fournisseur supprimé",
-      "SettingsSaved": "Paramètres enregistrés."
-    }
+      "SettingsSaved": "Paramètres enregistrés.",
+      "PasswordLoginEmptyAllowListConfirm": "Aucun utilisateur n'est autorisé à se connecter avec un mot de passe. Si le SSO cesse de fonctionner, personne ne pourra se connecter à Jellyfin tant que la configuration du plugin n'aura pas été modifiée avec une clé API d'administrateur ou en éditant SSO-Auth.xml. Continuer ?"
+    },
+    "PasswordLoginKicker": "Connexion par mot de passe",
+    "PasswordLoginTitle": "Désactiver la connexion par mot de passe",
+    "PasswordLoginDescription": "S'applique à tout le serveur, pas à un fournisseur. Possède son propre bouton Enregistrer."
   },
   "linking": {
     "PageTitle": "Liaison SSO",
@@ -144,6 +157,10 @@
     "LinkAccount": "Lier le compte",
     "LinkedIdentities": "Identités liées",
     "NoIdentityLinked": "Aucune identité liée à ce fournisseur.",
-    "NoProvidersConfigured": "Aucun fournisseur {0} n'est encore configuré."
+    "NoProvidersConfigured": "Aucun fournisseur {0} n'est encore configuré.",
+    "StartingLink": "Ouverture de {0}…",
+    "StartLinkFailed": "Impossible de démarrer la liaison avec {0}. Veuillez réessayer.",
+    "DeleteConfirm": "Supprimer {0} liaison(s) sélectionnée(s) ? Vous pourriez perdre l'accès si aucune autre méthode de connexion n'est disponible.",
+    "DeleteFailed": "Impossible de supprimer les liaisons sélectionnées. Vérifiez votre sélection et réessayez."
   }
 }

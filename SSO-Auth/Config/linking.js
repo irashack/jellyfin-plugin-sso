@@ -75,6 +75,15 @@ const ssoI18n = {
   },
 };
 
+const encodePathSegment = (value) => encodeURIComponent(String(value));
+
+const setPageStatus = (message, isError = false) => {
+  const status = document.querySelector("#page-status");
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle("sso-status-error", isError);
+};
+
 const ssoConfigLinking = {
   pluginUniqueId: "505ce9d1-d916-42fa-86ca-673ef241d7df",
   loadProviders: (view) => {
@@ -141,7 +150,8 @@ const ssoConfigLinking = {
       linkContainer.classList.add("sso-provider-existing-links-container");
       linkContainer.setAttribute("data-provider", provider_name);
 
-      const add_provider = document.createElement("a");
+      const add_provider = document.createElement("button");
+      add_provider.type = "button";
       add_provider.classList.add(
         "raised",
         "emby-button",
@@ -150,8 +160,10 @@ const ssoConfigLinking = {
       );
       add_provider.innerHTML = `<span class="material-icons add" aria-hidden="true"></span><span>${ssoI18n.t("linking.LinkAccount")}</span>`;
 
-      add_provider.href = ApiClient.getUrl(
-        `/SSO/${provider_mode}/p/${provider_name}?isLinking=true`,
+      // Linking runs as a server-side transaction for the signed-in user: the server answers
+      // with the identity provider's URL, and the provider's callback completes the link.
+      add_provider.addEventListener("click", (event) =>
+        ssoConfigLinking.handleAddLink(event, provider_mode, provider_name),
       );
 
       provider_config.appendChild(heading);
@@ -166,7 +178,9 @@ const ssoConfigLinking = {
       ApiClient.fetch(
         {
           type: "GET",
-          url: ApiClient.getUrl(`sso/${provider_mode}/links/${currentUserId}`),
+          url: ApiClient.getUrl(
+            `sso/${provider_mode}/links/${encodePathSegment(currentUserId)}`,
+          ),
         },
         true,
       ).then((resp) => {
@@ -190,6 +204,34 @@ const ssoConfigLinking = {
           });
         });
       });
+    }
+  },
+
+  handleAddLink: async (event, provider_mode, provider_name) => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    setPageStatus(ssoI18n.t("linking.StartingLink", provider_name));
+
+    try {
+      const response = await ApiClient.fetch({
+        type: "POST",
+        url: ApiClient.getUrl(
+          `sso/${provider_mode}/StartLink/${encodePathSegment(provider_name)}`,
+        ),
+      });
+      const redirectUrl = (
+        typeof response === "string" ? response : await response.text()
+      ).trim();
+      const destination = new URL(redirectUrl, window.location.href);
+      if (!["http:", "https:"].includes(destination.protocol)) {
+        throw new Error("The server returned an unsupported redirect URL.");
+      }
+
+      window.location.assign(destination.href);
+    } catch (error) {
+      console.error("Unable to start the SSO linking flow", error);
+      setPageStatus(ssoI18n.t("linking.StartLinkFailed", provider_name), true);
+      button.disabled = false;
     }
   },
 
@@ -247,6 +289,14 @@ const ssoConfigLinking = {
     const currentUserId = ApiClient.getCurrentUserId();
     if (!currentUserId) return;
 
+    const selected = [...view.querySelectorAll(".sso-link-checkbox:checked")];
+    if (
+      !selected.length ||
+      !window.confirm(ssoI18n.t("linking.DeleteConfirm", selected.length))
+    ) {
+      return;
+    }
+
     const delete_requests = [...view.querySelectorAll(".sso-link-checkbox")]
       .filter((checkbox_link) => {
         const canonical_name = checkbox_link.getAttribute("data-id");
@@ -271,15 +321,17 @@ const ssoConfigLinking = {
         return ApiClient.fetch({
           type: "DELETE",
           url: ApiClient.getUrl(
-            `sso/${provider_mode}/link/${provider_name}/${currentUserId}/${canonical_name}`,
+            `sso/${provider_mode}/link/${encodePathSegment(provider_name)}/${encodePathSegment(currentUserId)}/${encodePathSegment(canonical_name)}`,
           ),
         });
       });
 
-    Promise.all(delete_requests).then((values) => {
-      console.log({ message: "Delete requests handled", values });
-      window.location.reload();
-    });
+    Promise.all(delete_requests)
+      .then(() => window.location.reload())
+      .catch((error) => {
+        console.error("Unable to delete selected SSO links", error);
+        setPageStatus(ssoI18n.t("linking.DeleteFailed"), true);
+      });
   },
 };
 

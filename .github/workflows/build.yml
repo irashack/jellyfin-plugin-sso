@@ -28,6 +28,9 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
+      - name: Validate release metadata
+        run: ./scripts/validate-release-metadata.sh
+
       - name: Setup .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:

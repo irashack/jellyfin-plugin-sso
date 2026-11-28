@@ -16,7 +16,28 @@ public class PluginConfiguration : MediaBrowser.Model.Plugins.BasePluginConfigur
     {
         SamlConfigs = new SerializableDictionary<string, SamlConfig>();
         OidConfigs = new SerializableDictionary<string, OidConfig>();
+        PasswordLoginAllowedUsers = Array.Empty<string>();
     }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Jellyfin's username and password sign-in
+    /// (POST /Users/AuthenticateByName and the obsolete POST /Users/{userId}/Authenticate) is refused.
+    /// SSO sign-in, Quick Connect, API keys and sessions that already exist are unaffected.
+    /// Off by default.
+    /// </summary>
+    public bool DisablePasswordLogin { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Jellyfin usernames that may still sign in with a password while
+    /// <see cref="DisablePasswordLogin"/> is on (break-glass accounts). Compared case-insensitively.
+    /// </summary>
+    public string[] PasswordLoginAllowedUsers { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether existing Jellyfin users that no SSO provider links to
+    /// may still sign in with a password while <see cref="DisablePasswordLogin"/> is on.
+    /// </summary>
+    public bool AllowPasswordLoginForUnlinkedUsers { get; set; }
 
     /// <summary>
     /// Gets or sets the SAML configurations available.
@@ -372,6 +393,13 @@ public class OidConfig
     /// Gets or sets a value indicating whether the UserInfo endpoint is used to get profile data.
     /// </summary>
     public bool DoNotLoadProfile { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether sign-in is limited to identities already linked
+    /// to a Jellyfin user (by self-service linking, the admin link API or the configuration). When set, an unlinked identity is refused:
+    /// no Jellyfin user is created and no user is matched by name.
+    /// </summary>
+    public bool RequireLinkedAccount { get; set; }
 }
 
 /// <summary>

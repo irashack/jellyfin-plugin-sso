@@ -1,23 +1,28 @@
-name: "SSO Authentication"
+name: "SSO-Auth"
 guid: "505ce9d1-d916-42fa-86ca-673ef241d7df"
-imageUrl: "https://raw.githubusercontent.com/k0lin/jellyfin-plugin-sso/main/img/png/logo-single-color.png"
-version: "5.1.1"
+imageUrl: "https://raw.githubusercontent.com/irashack/jellyfin-plugin-sso/main/img/png/logo-single-color.png"
+version: "5.1.1.3003"
 targetAbi: "12.0.0.0"
 framework: "net10.0"
-owner: "k0lin"
+owner: "irashack"
 overview: "Authenticate users against an SSO provider."
 description: |
   This plugin allows users to sign in through an SSO provider (such as Google, Facebook, or your own provider). This enables one-click signin.
-  Review documentation at https://github.com/k0lin/jellyfin-plugin-sso
+  Fork of K0lin/jellyfin-plugin-sso with RequireLinkedAccount, an option to disable password sign-in, Live TV left alone without authorization, an admin link API, and Buco7854's single-use account-linking transactions.
+  Review documentation at https://github.com/irashack/jellyfin-plugin-sso
 category: "Authentication"
 artifacts:
   - "SSO-Auth.dll"
   - "Duende.IdentityModel.OidcClient.dll"
   - "Duende.IdentityModel.dll"
 changelog: |
-  5.1.1: Fix the "local manifest version ... was expected" warning on Jellyfin 12: the packaged meta.json now carries the same 3-segment version as the repository manifest
-  5.1.0: Jellyfin 12 support: .NET 10, Jellyfin 12.0.0 packages, modern Authorization header for the account linking flow
-  5.0.0.0: Full redesign of configuration and linking UI, i18n support, RBAC controls in UI
+  5.1.1.3003: Rebased onto K0lin/jellyfin-plugin-sso 5.1.1 (was Buco7854 5.0.0.3). New from K0lin: OIDC scope override (OverrideDefaultScopes) and custom authorization parameters (OidAuthorizationParameters), a content download permission (EnableContentDownloading, ApplyContentDownloadPermissionOnEveryLogin), sealing of SSO-linked accounts that have no stored password (at start-up, at sign-in and on creation), users created without authorization starting with no libraries, a redesigned and translated (en, fr, sr) settings and linking UI, Duende OidcClient 7.1 and automated tests. Kept from this fork: RequireLinkedAccount, Live TV left alone without authorization, the admin link API with serialized configuration writes, DisablePasswordLogin; kept from Buco7854: single-use, server-side account-linking transactions (the linking page now starts them; ?isLinking=true is refused), no silent reassignment of a linked identity, Jellyfin's HTTP client for OpenID, package name SSO-Auth. SAML/Auth now checks the provider's roles too. Same GUID and configuration keys.
+  5.0.0.3002: (on Buco7854 5.0.0.3) Optional DisablePasswordLogin (off by default): refuse Jellyfin username and password sign-in at the API, with PasswordLoginAllowedUsers for break-glass accounts and AllowPasswordLoginForUnlinkedUsers. SSO, Quick Connect and API keys keep working.
+  5.0.0.3001: (on Buco7854 5.0.0.3) RequireLinkedAccount for OpenID providers; Live TV permissions left alone when EnableAuthorization is off; admin link API (POST/DELETE/GET /sso/OID/AdminLink/{provider}/{userId}) with one lock around every link and provider write.
+  Buco7854 5.0.0.0-5.0.0.3 and 4.0.0.5-4.0.0.7, carried into 5.1.1.3003: secure, single-use account-linking transactions; permissions persisted through UpdatePolicyAsync; PreserveAdminPermissions (default false); Jellyfin's HTTP client for OpenID; package name aligned with the runtime name.
+  K0lin 5.1.1: Fix the "local manifest version ... was expected" warning on Jellyfin 12: the packaged meta.json now carries the same 3-segment version as the repository manifest
+  K0lin 5.1.0: Jellyfin 12 support: .NET 10, Jellyfin 12.0.0 packages, modern Authorization header for the account linking flow
+  K0lin 5.0.0.0: Full redesign of configuration and linking UI, i18n support, RBAC controls in UI
   4.0.0.4: Fix security issue in SAML
   4.0.0.0: Jellyfin 10.11
   3.5.3.0: Allow for OID-provided avatars, various bugfixes and workarounds

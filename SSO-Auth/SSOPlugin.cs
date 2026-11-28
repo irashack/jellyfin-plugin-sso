@@ -138,11 +138,6 @@ public class SSOPlugin : BasePlugin<PluginConfiguration>, IPlugin, IHasWebPages
                 Name = "emby-restyle.css",
                 EmbeddedResourcePath = $"{GetType().Namespace}.Views.emby-restyle.css"
             },
-            new PluginPageInfo
-            {
-                Name = "jellyfin-apiClient.esm.min.js",
-                EmbeddedResourcePath = $"{GetType().Namespace}.Views.jellyfin-apiClient.esm.min.js"
-            },
         };
     }
 }

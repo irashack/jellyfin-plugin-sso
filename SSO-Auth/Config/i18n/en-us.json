@@ -10,7 +10,7 @@
     "HeaderDescription": "Configure OpenID Connect providers, authorization rules, and user provisioning behavior for Jellyfin SSO.",
     "Help": "Help",
     "OverviewTitle": "Before you save",
-    "RestartNotice": "Changes to this configuration require a Jellyfin restart.",
+    "RestartNotice": "Settings take effect as soon as they are saved; no Jellyfin restart is needed. Installing or updating the plugin does need a restart.",
     "UiCoverageNotice": "This UI currently manages OpenID Connect providers. Some advanced options, including SAML provider setup, may still require the API.",
     "SelfServiceNotice": "Users can manage linked SSO accounts from the self-service linking page.",
     "SelfServiceLink": "Open self-service linking",
@@ -48,7 +48,8 @@
       "LoadProvider": "Load Provider",
       "DeleteProvider": "Delete Provider",
       "AddRoleMapping": "Add role mapping",
-      "Save": "Save"
+      "Save": "Save",
+      "SavePasswordLogin": "Save Password Sign-in Settings"
     },
     "fields": {
       "SelectProviderLabel": "Name of OpenID Provider:",
@@ -69,7 +70,7 @@
       "ApplyContentDownloadPermissionOnEveryLoginLabel": "Apply content download permission on every login",
       "ApplyContentDownloadPermissionOnEveryLoginDescription": "When disabled, the selected permission applies only when a user is created through this provider.",
       "EnableAuthorizationLabel": "Enable Authorization by Plugin",
-      "EnableAuthorizationDescription": "Determines if the plugin sets permissions for the user. If false, users start with no permissions and administrators assign them later. Existing user permissions are not rewritten on later logins.",
+      "EnableAuthorizationDescription": "Determines if the plugin sets permissions for the user: administrator, libraries, Live TV and content downloads, on every login. If false, the plugin never changes a user's permissions, users it creates start with no libraries, and administrators assign access in Jellyfin.",
       "EnableAllFoldersLabel": "Enable All Folders",
       "EnableAllFoldersDescription": "If enabled, all libraries are accessible to users logging in through this provider.",
       "EnabledFoldersLabel": "Enabled Folders:",
@@ -92,9 +93,9 @@
       "LiveTvManagementRolesLabel": "Live TV Management Roles:",
       "LiveTvManagementRolesDescription": "Roles to look for in the OpenID response, one per line. Users with any listed role receive Live TV management privileges.",
       "EnableLiveTvLabel": "Enable Live TV Access By Default",
-      "EnableLiveTvDescription": "Determines whether users can view Live TV by default. This value is still used when Live TV RBAC is enabled.",
+      "EnableLiveTvDescription": "Determines whether users can view Live TV by default. This value is still used when Live TV RBAC is enabled. Like every Live TV setting, it is only applied when Enable Authorization by Plugin is on.",
       "EnableLiveTvManagementLabel": "Enable Live TV Management By Default",
-      "EnableLiveTvManagementDescription": "Determines whether users can manage Live TV by default. This value is still used when Live TV RBAC is enabled.",
+      "EnableLiveTvManagementDescription": "Determines whether users can manage Live TV by default. This value is still used when Live TV RBAC is enabled. Like every Live TV setting, it is only applied when Enable Authorization by Plugin is on.",
       "RoleClaimLabel": "Role Claim:",
       "RoleClaimDescription": "The OpenID claim path used to read roles. Use \\\"\\.\\\" for a literal dot. Examples: realm_access.roles, resource_access.<clientId>.roles, or groups.",
       "OverrideDefaultScopesLabel": "Override default OIDC scopes",
@@ -106,7 +107,7 @@
       "DefaultProviderLabel": "Set default Provider:",
       "DefaultProviderDescription": "Authentication provider assigned after SSO login. Leave blank to keep the existing provider. A common default is Jellyfin.Server.Implementations.Users.DefaultAuthenticationProvider.",
       "DefaultUsernameClaimLabel": "Set default username claim:",
-      "DefaultUsernameClaimDescription": "OpenID claim used as the Jellyfin username. Defaults to preferred_username when unset.",
+      "DefaultUsernameClaimDescription": "OpenID claim used as the Jellyfin username and as the identity's link key. Defaults to preferred_username when unset; when the claim is missing, sub is used.",
       "AvatarUrlFormatLabel": "Set avatar URL format:",
       "AvatarUrlFormatDescription": "Avatar URL format. OIDC claims can be referenced with @{claim_name}, for example https://example.invalid/@{user_id}.png.",
       "DisableHttpsLabel": "Disable OpenID HTTPS Discovery (Insecure)",
@@ -119,14 +120,26 @@
       "SchemeOverrideLabel": "Scheme Override:",
       "SchemeOverrideDescription": "If the plugin redirects to an insecure URL, set this to https.",
       "PortOverrideLabel": "Port Override:",
-      "PortOverrideDescription": "If the plugin redirects to an incorrect port, set this to the appropriate port."
+      "PortOverrideDescription": "If the plugin redirects to an incorrect port, set this to the appropriate port.",
+      "RequireLinkedAccountLabel": "Require Linked Account",
+      "RequireLinkedAccountDescription": "Only identities already linked to a Jellyfin user can sign in. An unlinked sign-in is refused (HTTP 403) instead of creating a user or matching one by name. Users link themselves from the self-service linking page after signing in another way, or an administrator links them through the admin link API.",
+      "DisablePasswordLoginLabel": "Disable Password Sign-in",
+      "DisablePasswordLoginDescription": "Refuse Jellyfin's username and password sign-in (HTTP 403) for everyone except the users below. Sign-in through this plugin, Quick Connect, API keys and sessions that already exist keep working. Apps that only offer a password form must use Quick Connect instead. Off by default; takes effect at once, no restart needed.",
+      "PasswordLoginAllowedUsersLabel": "Users Allowed to Sign In with a Password:",
+      "PasswordLoginAllowedUsersDescription": "Jellyfin usernames, one per line, that may still sign in with a password. Keep at least one administrator here as a break-glass account in case the SSO provider is down.",
+      "AllowPasswordLoginForUnlinkedUsersLabel": "Allow Password Sign-in for Unlinked Users",
+      "AllowPasswordLoginForUnlinkedUsersDescription": "Also let existing Jellyfin users that no SSO provider links to sign in with a password. Linked users stay SSO-only. Off by default."
     },
     "messages": {
       "DeleteProviderConfirm": "Are you sure you want to delete the provider {0}?",
       "InvalidAuthorizationParameters": "Authorization parameters must be a valid JSON object.",
       "ProviderRemoved": "Provider removed",
-      "SettingsSaved": "Settings saved."
-    }
+      "SettingsSaved": "Settings saved.",
+      "PasswordLoginEmptyAllowListConfirm": "No user is allowed to sign in with a password. If SSO stops working, no one can sign in to Jellyfin until the plugin configuration is changed with an administrator API key or by editing SSO-Auth.xml. Continue?"
+    },
+    "PasswordLoginKicker": "Password sign-in",
+    "PasswordLoginTitle": "Disable password sign-in",
+    "PasswordLoginDescription": "Applies to the whole server, not to one provider. Has its own Save button."
   },
   "linking": {
     "PageTitle": "SSO Linking",
@@ -144,6 +157,10 @@
     "LinkAccount": "Link account",
     "LinkedIdentities": "Linked identities",
     "NoIdentityLinked": "No identity linked to this provider.",
-    "NoProvidersConfigured": "No {0} providers are configured yet."
+    "NoProvidersConfigured": "No {0} providers are configured yet.",
+    "StartingLink": "Opening {0}…",
+    "StartLinkFailed": "Unable to start linking with {0}. Please try again.",
+    "DeleteConfirm": "Delete {0} selected link(s)? You may lose access if no other sign-in method is available.",
+    "DeleteFailed": "Unable to delete the selected links. Review your selection and try again."
   }
 }
